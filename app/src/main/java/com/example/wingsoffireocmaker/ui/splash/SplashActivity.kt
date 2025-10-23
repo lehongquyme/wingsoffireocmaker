@@ -1,0 +1,75 @@
+package com.example.wingsoffireocmaker.ui.splash
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.wingsoffireocmaker.core.base.BaseActivity
+import com.example.wingsoffireocmaker.core.utils.SystemUtils
+import com.example.wingsoffireocmaker.ui.home.DataViewModel
+import com.example.wingsoffireocmaker.R
+import com.example.wingsoffireocmaker.databinding.ActivitySplashBinding
+import com.example.wingsoffireocmaker.ui.intro.IntroActivity
+import com.example.wingsoffireocmaker.ui.language.LanguageActivity
+import kotlinx.coroutines.launch
+import kotlin.getValue
+import kotlin.jvm.java
+
+class SplashActivity : BaseActivity<ActivitySplashBinding>() {
+    private var check = false
+    private val viewModel: DataViewModel by viewModels()
+    override fun setViewBinding(): ActivitySplashBinding {
+        return ActivitySplashBinding.inflate(LayoutInflater.from(this))
+    }
+
+    override fun initView() {
+        if (!isTaskRoot && intent.hasCategory(Intent.CATEGORY_LAUNCHER) && intent.action != null && intent.action.equals(
+                Intent.ACTION_MAIN
+            )
+        ) {
+            finish(); return;
+        }
+
+        viewModel.ensureData(this)
+
+    }
+
+    override fun dataObservable() {
+        lifecycleScope.launch {
+            viewModel.allData.collect { data ->
+                if (data.isNotEmpty()){
+                    if (SystemUtils.isFirstLang(this@SplashActivity)) {
+                        startActivity(Intent(this@SplashActivity, LanguageActivity::class.java))
+                        check = true
+                        finishAffinity()
+                    } else {
+                        startActivity(Intent(this@SplashActivity, IntroActivity::class.java))
+                        check = true
+                        finishAffinity()
+                    }
+                }
+            }
+        }
+    }
+    override fun viewListener() {
+
+    }
+
+    override fun initText() {
+
+    }
+
+    override fun onBackPressed() {
+        if (check) {
+            super.onBackPressed()
+        } else {
+            check = false
+        }
+    }
+
+}
