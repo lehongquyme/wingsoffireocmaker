@@ -1,6 +1,7 @@
 package com.example.wingsoffireocmaker.core.extensions
 
 import android.app.Activity
+import android.app.ActivityOptions
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -15,6 +16,7 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -26,6 +28,8 @@ import com.example.wingsoffireocmaker.core.utils.KeyApp.INTENT_KEY
 import com.example.wingsoffireocmaker.core.utils.SystemUtils
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.lastClickTime
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.setLocale
+import com.example.wingsoffireocmaker.core.utils.key.IntentKey
+import com.example.wingsoffireocmaker.core.utils.key.IntentKey.FROM
 import com.example.wingsoffireocmaker.ui.home.HomeActivity
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -70,6 +74,40 @@ fun Activity.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, message, duration).show()
 }
 
+
+///quylh
+internal fun Activity.startIntentReverse() {
+    val intent = Intent(this, HomeActivity::class.java)
+    startActivity(intent)
+    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    finishAffinity()
+}
+inline fun <reified T> Activity.startIntentRightToLeft(targetActivity: Class<*>, value: T) {
+    val intent = Intent(this, targetActivity)
+
+    when (value) {
+        is String -> intent.putExtra(IntentKey.INTENT_KEY, value)
+        is Int -> intent.putExtra(IntentKey.INTENT_KEY, value)
+        is Boolean -> intent.putExtra(IntentKey.INTENT_KEY, value)
+        is Float -> intent.putExtra(IntentKey.INTENT_KEY, value)
+        is Long -> intent.putExtra(IntentKey.INTENT_KEY, value)
+        else -> throw IllegalArgumentException(
+            "Unsupported type: ${T::class.java.simpleName}"
+        )
+    }
+
+    val option = ActivityOptions.makeCustomAnimation(
+        this, R.anim.slide_in_right, R.anim.slide_out_left
+    )
+    startActivity(intent, option.toBundle())
+}
+fun <T> AppCompatActivity.startIntentDataAnim(clazz: Class<T>, data: String, from: String) {
+    val intent = Intent(this, clazz)
+    intent.putExtra(IntentKey.INTENT_KEY, data)
+    intent.putExtra(FROM, from)
+    startActivity(intent)
+    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+}
 
 
 internal fun Activity.startIntent(targetActivity: Class<*>) {
@@ -186,6 +224,9 @@ internal fun Activity.hideWindow() {
     window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
 }
 
+fun Activity.dLogQ(content: String) {
+    Log.d("quylh", content)
+}
 fun Activity.dLog(content: String) {
     Log.d("nmduc", content)
 }

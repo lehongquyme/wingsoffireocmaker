@@ -2,11 +2,14 @@ package com.example.wingsoffireocmaker.ui.customize
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.lifecycle.ViewModel
+import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.core.extensions.showToast
+import com.example.wingsoffireocmaker.core.helper.AssetHelper
 import com.example.wingsoffireocmaker.core.helper.BitmapHelper
 import com.example.wingsoffireocmaker.core.helper.InternetHelper
 import com.example.wingsoffireocmaker.core.helper.MediaHelper
@@ -20,16 +23,30 @@ import com.example.wingsoffireocmaker.data.custom.ItemColorModel
 import com.example.wingsoffireocmaker.data.custom.ItemNavCustomModel
 import com.example.wingsoffireocmaker.data.custom.LayerListModel
 import com.example.wingsoffireocmaker.data.custom.NavigationModel
-import com.example.wingsoffireocmaker.R
+import com.example.wingsoffireocmaker.data.model.BackGroundModel
+import com.example.wingsoffireocmaker.data.model.SuggestionModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlin.apply
+import kotlin.collections.eachCount
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.forEachIndexed
+import kotlin.collections.get
+import kotlin.collections.groupingBy
+import kotlin.collections.indexOfFirst
+import kotlin.collections.isNotEmpty
+import kotlin.collections.mapIndexed
+import kotlin.collections.toCollection
+import kotlin.ranges.random
+import kotlin.ranges.until
+import kotlin.to
 
 class CustomizeViewModel : ViewModel() {
-    // Đếm số lần random, chỉ số được chọn
     var countRandom = 0
     var positionSelected = 0
 
@@ -40,12 +57,20 @@ class CustomizeViewModel : ViewModel() {
     private val _isFlip = MutableStateFlow(false)
     val isFlip = _isFlip.asStateFlow()
 
-    //----------------------------------------------------------------------------------------------------------------------
-    private val _positionNavSelected = MutableStateFlow(-1)
-    val positionNavSelected = _positionNavSelected.asStateFlow()
+    private val _isHideView = MutableStateFlow(false)
+    val isHideView = _isHideView.asStateFlow()
 
-    private val _positionCustom = MutableStateFlow(-1)
-    val positionCustom = _positionCustom.asStateFlow()
+    private val _isCreated = MutableStateFlow(false)
+    val isCreated = _isCreated.asStateFlow()
+
+    var statusFrom = ValueKey.CREATE
+
+    var avatarPath = ""
+
+    //----------------------------------------------------------------------------------------------------------------------
+    var positionNavSelected = -1
+
+    var positionCustom = -1
 
     // Data gốc
     private val _dataCustomize = MutableStateFlow<CustomizeModel?>(null)
@@ -55,51 +80,47 @@ class CustomizeViewModel : ViewModel() {
     private val _bottomNavigationList = MutableStateFlow(arrayListOf<NavigationModel>())
     val bottomNavigationList = _bottomNavigationList.asStateFlow()
 
-    // Danh sách layer & item
-//    private val _categoryList = MutableStateFlow(arrayListOf<ArrayList<LayerModel>>())
-//    val categoryList = _categoryList.asStateFlow()
-
-    private val _itemNavList = MutableStateFlow(arrayListOf<ArrayList<ItemNavCustomModel>>())
-    val itemNavList = _itemNavList.asStateFlow()
+    val itemNavList = ArrayList<ArrayList<ItemNavCustomModel>>()
 
     // Danh sách màu
-    private val _colorItemNavList = MutableStateFlow(arrayListOf<ArrayList<ItemColorModel>>())
-    val colorItemNavList = _colorItemNavList.asStateFlow()
+    var colorItemNavList = ArrayList<ArrayList<ItemColorModel>>()
 
     // Trạng thái chọn item/màu
-    private val _positionColorItemList = MutableStateFlow(arrayListOf<Int>())
-    val positionColorItemList = _positionColorItemList.asStateFlow()
+    var positionColorItemList = ArrayList<Int>()
 
-    private val _isSelectedItemList = MutableStateFlow(arrayListOf<Boolean>())
-    val isSelectedItemList = _isSelectedItemList.asStateFlow()
+    val isSelectedItemList = ArrayList<Boolean>()
 
-    private val _isShowColorList = MutableStateFlow(arrayListOf<Boolean>())
-    val isShowColorList = _isShowColorList.asStateFlow()
+    val isShowColorList = ArrayList<Boolean>()
 
     // Key + Path đã chọn
-    private val _keySelectedItemList = MutableStateFlow(arrayListOf<String>())
-    val keySelectedItemList = _keySelectedItemList.asStateFlow()
+    var keySelectedItemList = ArrayList<String>()
 
-    private val _pathSelectedList = MutableStateFlow(arrayListOf<String>())
-    val pathSelectedList = _pathSelectedList.asStateFlow()
+    var pathSelectedList = ArrayList<String>()
 
     // Danh sách ImageView trên layout
-    private val _imageViewList = MutableStateFlow(arrayListOf<ImageView>())
-    val imageViewList = _imageViewList.asStateFlow()
+    val imageViewList = ArrayList<ImageView>()
 
-    private val _colorListMost = MutableStateFlow(arrayListOf<String>())
-    val colorListMost = _colorListMost.asStateFlow()
+    val colorListMost = ArrayList<String>()
+
+    var suggestionModel = SuggestionModel()
+    var backgroundList: ArrayList<BackGroundModel>? = null
+    var selectedBackgroundPath: String? = null
 
     //----------------------------------------------------------------------------------------------------------------------
     // Base setter
+    private val _backgroundList = MutableStateFlow<ArrayList<BackGroundModel>>(arrayListOf())
+    val backgroundListLive = _backgroundList.asStateFlow()
+
     suspend fun setPositionNavSelected(position: Int) {
-        _positionNavSelected.value = position
+        positionNavSelected = position
     }
 
     suspend fun setPositionCustom(position: Int) {
-        _positionCustom.value = position
+        positionCustom = position
     }
-
+    fun setSelectedBackground(path: String?) {
+        selectedBackgroundPath = path
+    }
     fun setDataCustomize(data: CustomizeModel) {
         _dataCustomize.value = data
     }
@@ -112,56 +133,74 @@ class CustomizeViewModel : ViewModel() {
         _isFlip.value = !_isFlip.value
     }
 
-    fun setPositionColorItemList(positionList: ArrayList<Int>) {
-        _positionColorItemList.value = positionList
+    fun setIsHideView() {
+        _isHideView.value = !_isHideView.value
     }
 
-    fun setIsSelectedItemList(selectedList: ArrayList<Boolean>) {
-        _isSelectedItemList.value = selectedList
+    fun setIsCreated(status: Boolean) {
+        _isCreated.value = status
     }
 
-    fun setIsShowColorList(showList: ArrayList<Boolean>) {
-        _isShowColorList.value = showList
+    fun updatePositionColorItemList(positionList: ArrayList<Int>) {
+        positionColorItemList.clear()
+        positionColorItemList.addAll(positionList)
     }
 
-//    suspend fun setCategoryList(categoryList: ArrayList<ArrayList<LayerModel>>) {
-//        _categoryList.value = categoryList
-//    }
-
-    fun setKeySelectedItemList(keyList: ArrayList<String>) {
-        _keySelectedItemList.value = keyList
+    fun updateIsSelectedItemList(selectedList: ArrayList<Boolean>) {
+        isSelectedItemList.clear()
+        isSelectedItemList.addAll(selectedList)
     }
 
-    fun setPathSelectedList(pathList: ArrayList<String>) {
-        _pathSelectedList.value = pathList
+    fun updateIsShowColorList(position: Int, status: Boolean) {
+        isShowColorList[position] = status
+    }
+
+    fun updateIsShowColorList(showList: ArrayList<Boolean>) {
+        isShowColorList.clear()
+        isShowColorList.addAll(showList)
+    }
+
+    fun updateKeySelectedItemList(keyList: ArrayList<String>) {
+        keySelectedItemList.clear()
+        keySelectedItemList = keyList
+    }
+
+    fun updatePathSelectedList(pathList: ArrayList<String>) {
+        pathSelectedList.clear()
+        pathSelectedList.addAll(pathList)
     }
 
     fun setColorListMost(colorList: ArrayList<String>) {
-        _colorListMost.value = colorList
+        colorListMost.clear()
+        colorListMost.addAll(colorList)
+    }
+
+    fun updateSuggestionModel(model: SuggestionModel) {
+        suggestionModel = model
+    }
+
+    fun updateAvatarPath(path: String) {
+        avatarPath = path
     }
 
     //----------------------------------------------------------------------------------------------------------------------
     // Setter suspend
     suspend fun setPositionColorItem(position: Int, newPosition: Int) {
-        _positionColorItemList.value =
-            _positionColorItemList.value.mapIndexed { index, oldPosition -> if (index == position) newPosition else oldPosition }
+        positionColorItemList =
+            positionColorItemList.mapIndexed { index, oldPosition -> if (index == position) newPosition else oldPosition }
                 .toCollection(ArrayList())
     }
 
     suspend fun setIsSelectedItem(position: Int) {
-        _isSelectedItemList.value[position] = true
+        isSelectedItemList[position] = true
     }
 
     suspend fun setKeySelected(position: Int, newKey: String) {
-        _keySelectedItemList.value = _keySelectedItemList.value
-            .mapIndexed { index, oldKey -> if (index == position) newKey else oldKey }
-            .toCollection(ArrayList())
+        keySelectedItemList[position] = newKey
     }
 
     suspend fun setPathSelected(position: Int, newPath: String) {
-        _pathSelectedList.value =
-            _pathSelectedList.value.mapIndexed { index, oldPath -> if (index == position) newPath else oldPath }
-                .toCollection(ArrayList())
+        pathSelectedList[position] = newPath
     }
 
     //----------------------------------------------------------------------------------------------------------------------
@@ -171,13 +210,18 @@ class CustomizeViewModel : ViewModel() {
     }
 
     suspend fun setBottomNavigationListDefault() {
+        val customize = _dataCustomize.value ?: return
         val outputBottomNavigationList = arrayListOf<NavigationModel>()
-        _dataCustomize.value!!.layerList.forEach { layerList ->
+        customize.layerList.forEach { layerList ->
             outputBottomNavigationList.add(NavigationModel(imageNavigation = layerList.imageNavigation))
         }
-        outputBottomNavigationList.first().isSelected = true
-        _bottomNavigationList.value = outputBottomNavigationList
+        if (outputBottomNavigationList.isNotEmpty()) {
+            outputBottomNavigationList.first().isSelected = true
+            _bottomNavigationList.value = outputBottomNavigationList
+        }
     }
+
+
 
 
     suspend fun setClickBottomNavigation(position: Int) {
@@ -189,79 +233,87 @@ class CustomizeViewModel : ViewModel() {
     //----------------------------------------------------------------------------------------------------------------------
     //  Item Nav / Layer
     suspend fun addValueToItemNavList() {
+        itemNavList.clear()
         _dataCustomize.value!!.layerList.forEachIndexed { index, layer ->
+            Log.d("quylh","${layer.imageNavigation}")
+
             if (index == 0) {
-                _itemNavList.value.add(createListItem(layer, true))
+                itemNavList.add(createListItem(layer, true))
             } else {
-                _itemNavList.value.add(createListItem(layer))
+                itemNavList.add(createListItem(layer))
             }
         }
-
     }
 
     suspend fun setFocusItemNavDefault() {
-        for (itemParent in _itemNavList.value) {
+        for (itemParent in itemNavList) {
             itemParent.forEachIndexed { index, item ->
                 item.isSelected = index == 0
             }
         }
-        _itemNavList.value.first()[0].isSelected = false
-        _itemNavList.value.first()[1].isSelected = true
+        itemNavList.first()[0].isSelected = false
+        itemNavList.first()[1].isSelected = true
+    }
+
+    fun updateItemNavList(list: ArrayList<ArrayList<ItemNavCustomModel>>) {
+        itemNavList.clear()
+        itemNavList.addAll(list)
     }
 
     suspend fun setItemNavList(positionNavigation: Int, position: Int) {
-        _itemNavList.value[positionNavigation] = _itemNavList.value[positionNavigation]
-                .mapIndexed { index, models -> models.copy(isSelected = index == position) }
-                .toCollection(ArrayList())
+        itemNavList[positionNavigation] = itemNavList[positionNavigation]
+            .mapIndexed { index, models -> models.copy(isSelected = index == position) }
+            .toCollection(ArrayList())
     }
 
     suspend fun setClickFillLayer(item: ItemNavCustomModel, position: Int): String {
         val path = item.path
-        setKeySelected(positionNavSelected.value, path)
+        setKeySelected(positionNavSelected, path)
         val pathSelected = if (item.listImageColor.isEmpty()) {
             path
         } else {
-            item.listImageColor[positionColorItemList.value[positionNavSelected.value]].path
+            item.listImageColor[positionColorItemList[positionNavSelected]].path
         }
-        setIsSelectedItem(positionNavSelected.value)
-        setItemNavList(_positionNavSelected.value, position)
+        setIsSelectedItem(positionNavSelected)
+        setItemNavList(positionNavSelected, position)
         return pathSelected
     }
 
     suspend fun setClickRandomLayer(): Pair<String, Boolean> {
-        val positionStartLayer = if (positionNavSelected.value == 0) 1 else 2
-        val randomLayer = if (positionNavSelected.value == 0) {
-            if (itemNavList.value[positionNavSelected.value].size == 1) {
+        val positionStartLayer = if (positionNavSelected == 0) 1 else 2
+        val randomLayer = if (positionNavSelected == 0) {
+            if (itemNavList[positionNavSelected].size == 1) {
                 1
             } else {
-                (positionStartLayer..<itemNavList.value[positionNavSelected.value].size).random()
+                (positionStartLayer..<itemNavList[positionNavSelected].size).random()
             }
         } else {
-            (positionStartLayer..<itemNavList.value[positionNavSelected.value].size).random()
+            (positionStartLayer..<itemNavList[positionNavSelected].size).random()
         }
 
         var randomColor: Int? = null
 
         var isMoreColors = false
 
-        if (itemNavList.value[positionNavSelected.value][positionStartLayer].listImageColor.isNotEmpty()) {
+        if (itemNavList[positionNavSelected][positionStartLayer].listImageColor.isNotEmpty()) {
             isMoreColors = true
             randomColor =
-                (0..<(itemNavList.value[positionNavSelected.value][positionStartLayer].listImageColor.size)).random()
+                (0..<(itemNavList[positionNavSelected][positionStartLayer].listImageColor.size)).random()
         }
-        var pathRandom = itemNavList.value[positionNavSelected.value][randomLayer].path
-        setKeySelected(positionNavSelected.value, pathRandom)
+        var pathRandom = itemNavList[positionNavSelected][randomLayer].path
+        setKeySelected(positionNavSelected, pathRandom)
 
         if (!isMoreColors) {
-            setPositionColorItem(positionCustom.value, 0)
+            setPositionColorItem(positionCustom, 0)
         } else {
-            pathRandom = itemNavList.value[positionNavSelected.value][randomLayer].listImageColor[randomColor!!].path
-            setPositionColorItem(positionCustom.value, randomColor)
+            pathRandom =
+                itemNavList[positionNavSelected][randomLayer].listImageColor[randomColor!!].path
+            setPositionColorItem(positionCustom, randomColor)
         }
-        setPathSelected(positionCustom.value, pathRandom)
-        setItemNavList(_positionNavSelected.value, randomLayer)
+        setPathSelected(positionCustom, pathRandom)
+        setItemNavList(positionNavSelected, randomLayer)
         if (isMoreColors) {
-            setColorItemNav(positionNavSelected.value, randomColor!!)
+            setColorItemNav(positionNavSelected, randomColor!!)
         }
         return pathRandom to isMoreColors
     }
@@ -271,37 +323,36 @@ class CustomizeViewModel : ViewModel() {
 //        val isOutTurn = if (countRandom == 5) true else false
 
         val colorCode =
-            if (colorListMost.value.isNotEmpty()) _colorListMost.value[(0..<colorListMost.value.size).random()] else "#123456"
+            if (colorListMost.isNotEmpty()) colorListMost[(0..<colorListMost.size).random()] else "#123456"
         for (i in 0 until _bottomNavigationList.value.size) {
             val minSize = if (i == 0) 1 else 2
-            if (_itemNavList.value[i].size <= minSize) {
+            if (itemNavList[i].size <= minSize) {
                 continue
             }
-            val randomLayer = (minSize..<_itemNavList.value[i].size).random()
+            val randomLayer = (minSize..<itemNavList[i].size).random()
 
             var randomColor: Int = 0
 
-            val isMoreColors = if (_itemNavList.value[i][minSize].listImageColor.isNotEmpty()) {
+            val isMoreColors = if (itemNavList[i][minSize].listImageColor.isNotEmpty()) {
                 randomColor =
-                    _itemNavList.value[i][randomLayer].listImageColor.indexOfFirst { it.color == colorCode }
+                    itemNavList[i][randomLayer].listImageColor.indexOfFirst { it.color == colorCode }
                 if (randomColor == -1) {
-                    randomColor = (0..<_itemNavList.value[i][minSize].listImageColor.size).random()
+                    randomColor = (0..<itemNavList[i][minSize].listImageColor.size).random()
                 }
                 true
             } else {
                 false
             }
-            _keySelectedItemList.value[i] =
-                _itemNavList.value[i][randomLayer].path
+            keySelectedItemList[i] = itemNavList[i][randomLayer].path
 
             val pathItem = if (!isMoreColors) {
-                _positionColorItemList.value[i] = 0
-                _itemNavList.value[i][randomLayer].path
+                positionColorItemList[i] = 0
+                itemNavList[i][randomLayer].path
             } else {
-                _positionColorItemList.value[i] = randomColor
-                _itemNavList.value[i][randomLayer].listImageColor[randomColor].path
+                positionColorItemList[i] = randomColor
+                itemNavList[i][randomLayer].listImageColor[randomColor].path
             }
-            _pathSelectedList.value[_dataCustomize.value!!.layerList[i].positionCustom] = pathItem
+            pathSelectedList[_dataCustomize.value!!.layerList[i].positionCustom] = pathItem
             setItemNavList(i, randomLayer)
             if (isMoreColors) {
                 setColorItemNav(i, randomColor)
@@ -315,12 +366,13 @@ class CustomizeViewModel : ViewModel() {
         _bottomNavigationList.value.forEachIndexed { index, model ->
             val positionSelected = if (index == 0) 1 else 0
             setItemNavList(index, positionSelected)
-            setColorItemNav(index, positionSelected)
+            setColorItemNav(index, 0)
         }
         val pathDefault = _dataCustomize.value!!.layerList.first().layer.first().image
-        _pathSelectedList.value[_dataCustomize.value!!.layerList.first().positionCustom] = pathDefault
-        _keySelectedItemList.value[_dataCustomize.value!!.layerList.first().positionNavigation] = pathDefault
-        _isSelectedItemList.value[_dataCustomize.value!!.layerList.first().positionNavigation] = true
+        pathSelectedList[_dataCustomize.value!!.layerList.first().positionCustom] = pathDefault
+        keySelectedItemList[_dataCustomize.value!!.layerList.first().positionNavigation] =
+            pathDefault
+        isSelectedItemList[_dataCustomize.value!!.layerList.first().positionNavigation] = true
         return pathDefault
     }
 
@@ -344,13 +396,13 @@ class CustomizeViewModel : ViewModel() {
                     }
                     firstIndex = false
                 }
-                _colorItemNavList.value.add(colorList)
+                colorItemNavList.add(colorList)
             } else {
-                _colorItemNavList.value.add(arrayListOf())
+                colorItemNavList.add(arrayListOf())
             }
         }
         val getAllColor = ArrayList<String>()
-        _itemNavList.value.forEachIndexed { index, nav ->
+        itemNavList.forEachIndexed { index, nav ->
             val position = if (index != 0) 2 else 1
             val itemNav = nav[position]
             itemNav.listImageColor.forEach { colorList ->
@@ -359,33 +411,38 @@ class CustomizeViewModel : ViewModel() {
         }
         setColorListMost(
             getAllColor
-            .groupingBy { it }
-            .eachCount()
-            .filter { it.value > 3 }.keys
-            .toCollection(ArrayList())
+                .groupingBy { it }
+                .eachCount()
+                .filter { it.value > 3 }.keys
+                .toCollection(ArrayList())
         )
     }
 
+    fun updateColorNavList(list: ArrayList<ArrayList<ItemColorModel>>) {
+        colorItemNavList.clear()
+        colorItemNavList.addAll(list)
+    }
+
     suspend fun setColorItemNav(positionNavSelected: Int, position: Int) {
-        _colorItemNavList.value[positionNavSelected] = _colorItemNavList.value[positionNavSelected]
+        colorItemNavList[positionNavSelected] = colorItemNavList[positionNavSelected]
             .mapIndexed { index, models -> models.copy(isSelected = index == position) }
             .toCollection(ArrayList())
     }
 
     suspend fun setClickChangeColor(position: Int): String {
         var pathColor = ""
-        _positionColorItemList.value[positionNavSelected.value] = position
+        positionColorItemList[positionNavSelected] = position
         // Đã chọn hình ảnh chưa
-        if (_keySelectedItemList.value[positionNavSelected.value] != "") {
+        if (keySelectedItemList[positionNavSelected] != "") {
             // Duyệt qua từng item trong bộ phận
-            for (item in _dataCustomize.value!!.layerList[positionNavSelected.value].layer) {
-                if (item.image == _keySelectedItemList.value[positionNavSelected.value]) {
+            for (item in _dataCustomize.value!!.layerList[positionNavSelected].layer) {
+                if (item.image == keySelectedItemList[positionNavSelected]) {
                     pathColor = item.listColor[position].path
-                    _pathSelectedList.value[_positionCustom.value] = pathColor
+                    pathSelectedList[positionCustom] = pathColor
                 }
             }
         }
-        setColorItemNav(positionNavSelected.value, position)
+        setColorItemNav(positionNavSelected, position)
         return pathColor
     }
 
@@ -393,7 +450,13 @@ class CustomizeViewModel : ViewModel() {
 // Extension other
 
     suspend fun setImageViewList(frameLayout: FrameLayout) {
-        _imageViewList.value.addAll(addImageViewToLayout(_dataCustomize.value!!.layerList.size, frameLayout))
+        imageViewList.clear()
+        imageViewList.addAll(
+            addImageViewToLayout(
+                _dataCustomize.value!!.layerList.size,
+                frameLayout
+            )
+        )
     }
 
     fun addImageViewToLayout(quantityLayer: Int, frameLayout: FrameLayout): ArrayList<ImageView> {
@@ -410,7 +473,10 @@ class CustomizeViewModel : ViewModel() {
         return imageViewList
     }
 
-    fun createListItem(layers: LayerListModel, isBody: Boolean = false): ArrayList<ItemNavCustomModel> {
+    fun createListItem(
+        layers: LayerListModel,
+        isBody: Boolean = false
+    ): ArrayList<ItemNavCustomModel> {
         val listItem = arrayListOf<ItemNavCustomModel>()
         val positionCustom = layers.positionCustom
         val positionNavigation = layers.positionNavigation
@@ -476,9 +542,10 @@ class CustomizeViewModel : ViewModel() {
     fun saveImageFromView(context: Context, view: View): Flow<SaveState> = flow {
         emit(SaveState.Loading)
         val bitmap = BitmapHelper.createBimapFromView(view)
-        MediaHelper.saveBitmapToInternalStorage(context, ValueKey.DOWNLOAD_ALBUM_BACKGROUND, bitmap).collect { state ->
-            emit(state)
-        }
+        MediaHelper.saveBitmapToInternalStorage(context, ValueKey.DOWNLOAD_ALBUM_BACKGROUND, bitmap)
+            .collect { state ->
+                emit(state)
+            }
     }.flowOn(Dispatchers.IO)
 
     fun checkDataInternet(context: Activity, action: (() -> Unit)) {
@@ -511,13 +578,57 @@ class CustomizeViewModel : ViewModel() {
             pathSelectedList.add("")
         }
 
-        setPositionColorItemList(positionColorItemList)
-        setIsSelectedItemList(isSelectedItemList)
-        setKeySelectedItemList(keySelectedItemList)
-        setIsShowColorList(isShowColorList)
-        setPathSelectedList(pathSelectedList)
+        updatePositionColorItemList(positionColorItemList)
+        updateIsSelectedItemList(isSelectedItemList)
+        updateKeySelectedItemList(keySelectedItemList)
+        updateIsShowColorList(isShowColorList)
+        updatePathSelectedList(pathSelectedList)
     }
 
+    fun getSuggestionList(): SuggestionModel {
+        return SuggestionModel(
+            avatarPath = avatarPath,
+            positionColorItemList = ArrayList(positionColorItemList),
+            itemNavList = ArrayList(itemNavList),
+            colorItemNavList = ArrayList(colorItemNavList),
+            isSelectedItemList = ArrayList(isSelectedItemList),
+            keySelectedItemList = ArrayList(keySelectedItemList),
+            isShowColorList = ArrayList(isShowColorList),
+            pathSelectedList = ArrayList(pathSelectedList),
+            backgroundList = backgroundList,
+            selectedBackgroundPath = selectedBackgroundPath,
+            randomBackgroundPath = selectedBackgroundPath
+        )
+    }
+
+    fun fillSuggestionToCustomize() {
+        updatePositionColorItemList(suggestionModel.positionColorItemList)
+        updateItemNavList(suggestionModel.itemNavList)
+        updateColorNavList(suggestionModel.colorItemNavList)
+        updateIsSelectedItemList(suggestionModel.isSelectedItemList)
+        updateKeySelectedItemList(suggestionModel.keySelectedItemList)
+        updateIsShowColorList(suggestionModel.isShowColorList)
+        updatePathSelectedList(suggestionModel.pathSelectedList)
+        backgroundList = suggestionModel.backgroundList
+        selectedBackgroundPath = suggestionModel.randomBackgroundPath
+        Log.d("CustomizeVM", "Fill suggestion background: $selectedBackgroundPath")
+
+    }
     //----------------------------------------------------------------------------------------------------------------------
+//quylh
+
+    fun loadBackgroundData(context: Context) {
+        val list = arrayListOf<BackGroundModel>()
+        list.add(BackGroundModel(path = null, isSelected = true))
+        val assetList = AssetHelper.getSubfoldersAsset(context, AssetsKey.BACKGROUND_ASSET)
+        assetList.forEach { path ->
+            list.add(BackGroundModel(path = path, isSelected = false))
+        }
+        _backgroundList.value = list   // ✅ Cập nhật cho UI
+        backgroundList = list          // ✅ Gán cho biến toàn cục
+        Log.d("CustomizeVM", "Loaded ${list.size} backgrounds from assets")
+    }
+
+
 
 }

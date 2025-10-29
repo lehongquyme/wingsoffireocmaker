@@ -30,6 +30,8 @@ import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.core.utils.HandleState
 import com.example.wingsoffireocmaker.core.utils.SaveState
 import com.example.wingsoffireocmaker.core.utils.key.ValueKey
+import com.example.wingsoffireocmaker.core.utils.key.ValueKey.DATA_JSON_FILE
+import com.example.wingsoffireocmaker.data.model.DataModel
 import kotlinx.coroutines.flow.flowOn
 
 object MediaHelper {
@@ -149,7 +151,7 @@ object MediaHelper {
         }
     }
 
-    inline fun <reified T> writeListToFile(context: Context, fileName: String, list: List<T>) {
+    inline fun <reified T> writeListToFile(context: Context, fileName: String?= DATA_JSON_FILE, list: List<T>) {
         try {
             val json = Gson().toJson(list)
             context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
@@ -159,8 +161,34 @@ object MediaHelper {
             e.printStackTrace()
         }
     }
+    fun updateDataModel(
+        context: Context,
+        newData: DataModel,
+        fileName: String? = DATA_JSON_FILE,
+    ) {
+        try {
+            // Đọc list hiện tại trong file
+            val list = readListFromFile<DataModel>(context, fileName!!).toMutableList()
+            val index = list.indexOfFirst { it.avatarId == newData.avatarId }
+            if (index != -1) {
+                // Cập nhật data cũ
+                list[index] = newData
+                Log.d("quylh", "♻️ Cập nhật DataModel avatarId=${newData.avatarId}")
+            } else {
+                // Thêm mới
+                list.add(newData)
+                Log.d("quylh", "🆕 Thêm mới DataModel avatarId=${newData.avatarId}")
+            }
 
-    inline fun <reified T> readListFromFile(context: Context, fileName: String): List<T> {
+            writeListToFile(context,fileName, list)
+            Log.d("quylh", "✅ Ghi dữ liệu thành công (${list.size} items)")
+
+        } catch (e: Exception) {
+            Log.e("quylh", "❌ Lỗi update file: ${e.message}", e)
+        }
+    }
+
+    inline fun <reified T> readListFromFile(context: Context, fileName: String?= DATA_JSON_FILE): List<T> {
         return try {
             val json = context.openFileInput(fileName).bufferedReader().use { it.readText() }
             val type = object : TypeToken<List<T>>() {}.type

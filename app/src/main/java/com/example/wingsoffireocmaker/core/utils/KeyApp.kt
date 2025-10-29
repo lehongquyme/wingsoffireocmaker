@@ -4,6 +4,8 @@ object KeyApp {
     const val INTENT_KEY = "intent_key"
     const val INTENT_KEY_LANG = "INTENT_KEY_LANG"
     const val FROM_SAVE = "from_suc"
+
+    const val FROM_MY_CREATION = "from_home"
     const val PATH_KEY = "PATH_KEY"
     const val LOAD_KEY = "LOAD_KEY"
     const val STATUS_KEY = "STATUS_KEY"
@@ -17,7 +19,6 @@ object KeyApp {
     const val BOY_3 = "BOY_3"
     const val BOY_4 = "BOY_4"
     const val DATA_DEFAULT = "data_default"
-
     const val FIRST_LANG = "first_lang"
     const val FIRST_LANG_KEY = "first_access_lang"
 
@@ -39,8 +40,8 @@ object KeyApp {
     const val NOTIFICATION_PERMISSION_CODE = 997
     const val PICK_IMAGE_REQUEST_CODE = 103
 
-    const val DOWNLOAD_ALBUM = "HALLOWEEN Maker Album"
-    const val DOWNLOAD_ALBUM1 = "HALLOWEEN Maker Album1"
+    const val DOWNLOAD_ALBUM = "WING Maker Album"
+    const val DOWNLOAD_ALBUM1 = "WING Maker Album1"
     const val AVATAR = "avatar"
 
     const val FROM_SETTINGS = "FROM_SETTINGS"
@@ -52,7 +53,7 @@ object KeyApp {
     const val AVATAR_ASSET = "avatar"
 
     const val AVATAR_STICKER_ASSET = "avatar_sticker"
-    const val BG_ASSET = "bg"
+    const val BG_ASSET = "background"
 
     const val BODY = "body"
     const val FACE = "face"

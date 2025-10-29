@@ -17,16 +17,23 @@ import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.databinding.ItemMyCreationBinding
 
 class MyCreationAdapter(val context: Context) : RecyclerView.Adapter<MyCreationAdapter.MyLibraryViewHolder>() {
-    private var listMyLibrary: ArrayList<MyCreationModel> = arrayListOf()
+     var listMyLibrary: ArrayList<MyCreationModel> = arrayListOf()
     var onItemClick: ((String) -> Unit)? = null
     var onMoreClick: ((String, Int, View) -> Unit)? = null
     var onLongClick: ((Int) -> Unit)? = null
     var onItemTick: ((Int) -> Unit)? = null
+    var selectionMode = false
 
     inner class MyLibraryViewHolder(val binding: ItemMyCreationBinding) : RecyclerView.ViewHolder(binding.root) {
+        @SuppressLint("ClickableViewAccessibility")
         fun bind(item: MyCreationModel, position: Int) {
-            Glide.with(binding.root).load(item.path).placeholder(shimmerDrawable).error(shimmerDrawable).into(binding.imvImage)
+            Glide.with(binding.root)
+                .load(item.path)
+                .placeholder(shimmerDrawable)
+                .error(shimmerDrawable)
+                .into(binding.imvImage)
 
+            // Hiển thị tick hoặc more
             if (item.isShowSelection) {
                 binding.btnSelect.show()
                 binding.btnMore.gone()
@@ -35,26 +42,38 @@ class MyCreationAdapter(val context: Context) : RecyclerView.Adapter<MyCreationA
                 binding.btnMore.show()
             }
 
-            if (item.isSelected) {
-                binding.btnSelect.setImageResource(R.drawable.ic_tick_item)
-            } else {
-                binding.btnSelect.setImageResource(R.drawable.ic_not_tick_item)
+            // Cập nhật icon tick
+            binding.btnSelect.setImageResource(
+                if (item.isSelected) R.drawable.ic_tick_item else R.drawable.ic_not_tick_item
+            )
+
+            // ⚙️ NGĂN “nháy” khi giữ — flag này chặn click sau long click
+            var isLongPressed = false
+
+            binding.root.setOnTouchListener { _, event ->
+                if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                    isLongPressed = false
+                }
+                false
             }
 
-            binding.root.onSingleClick {
-                onItemClick?.invoke(item.path)
-            }
-            binding.btnMore.onSingleClick {
-//                onMoreClick?.invoke(item.path, position, it)
-            }
             binding.root.setOnLongClickListener {
+                isLongPressed = true
                 onLongClick?.invoke(position)
-                return@setOnLongClickListener true
+                true
             }
+
+            binding.root.setOnClickListener {
+                if (!isLongPressed) {
+                    onItemClick?.invoke(item.path)
+                }
+            }
+
             binding.btnSelect.onSingleClick {
                 onItemTick?.invoke(position)
             }
         }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyLibraryViewHolder {
@@ -84,4 +103,28 @@ class MyCreationAdapter(val context: Context) : RecyclerView.Adapter<MyCreationA
         listMyLibrary[position].isSelected = isSelect
         notifyItemChanged(position)
     }
+    fun isSelectionMode(): Boolean = selectionMode
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun enableSelectionMode(enable: Boolean) {
+        selectionMode = enable
+        listMyLibrary.forEach { it.isShowSelection = enable }
+        notifyDataSetChanged()
+    }
+
+    fun toggleSelect(position: Int) {
+        listMyLibrary[position].isSelected = !listMyLibrary[position].isSelected
+        notifyItemChanged(position)
+    }
+
+    fun getSelectedCount(): Int {
+        return listMyLibrary.count { it.isSelected }
+    }
+    fun clearAllSelections() {
+        listMyLibrary.forEach { it.isSelected = false
+            it.isShowSelection = false
+        }
+        notifyDataSetChanged()
+    }
+
 }

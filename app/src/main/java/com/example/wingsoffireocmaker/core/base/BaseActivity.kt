@@ -192,7 +192,7 @@ abstract class BaseActivity<T : ViewBinding> : AppCompatActivity() {
     }
 
 
-    suspend fun dismissLoading(isBlack: Boolean = false) {
+    suspend fun dismissLoading( isBlack: Boolean = false) {
         withContext(Dispatchers.Main) {
             if (loadingDialog.isShowing) {
                 loadingDialog.dismiss()
@@ -200,4 +200,5 @@ abstract class BaseActivity<T : ViewBinding> : AppCompatActivity() {
             }
         }
     }
+
 }

@@ -1,32 +1,29 @@
 package com.example.wingsoffireocmaker.ui.category
 
-import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.wingsoffireocmaker.core.base.BaseActivity
 import com.example.wingsoffireocmaker.core.extensions.handleBack
 import com.example.wingsoffireocmaker.core.extensions.onSingleClick
 import com.example.wingsoffireocmaker.core.extensions.startIntent
+import com.example.wingsoffireocmaker.core.extensions.startIntentDataAnim
+import com.example.wingsoffireocmaker.core.extensions.startIntentRightToLeft
 import com.example.wingsoffireocmaker.core.helper.InternetHelper
+import com.example.wingsoffireocmaker.core.utils.key.IntentKey.FROM_CATEGORY
+import com.example.wingsoffireocmaker.core.utils.key.IntentKey.STATUS_FROM_KEY
 import com.example.wingsoffireocmaker.core.utils.key.ValueKey
-import com.example.wingsoffireocmaker.ui.category.CategoryAdapter
-import com.example.wingsoffireocmaker.ui.home.DataViewModel
-import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.databinding.ActivityCategoryBinding
 import com.example.wingsoffireocmaker.ui.customize.CustomizeActivity
+import com.example.wingsoffireocmaker.ui.home.DataViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.getValue
 
 class CategoryActivity : BaseActivity<ActivityCategoryBinding>() {
     private val dataViewModel: DataViewModel by viewModels()
     private val avatarAdapter by lazy { CategoryAdapter(this) }
-    override fun setViewBinding(): ActivityCategoryBinding {
+    override fun setViewBinding():ActivityCategoryBinding {
         return ActivityCategoryBinding.inflate(LayoutInflater.from(this))
     }
 
@@ -54,11 +51,11 @@ class CategoryActivity : BaseActivity<ActivityCategoryBinding>() {
             btnBack.onSingleClick {
                 handleBack()
             }
-//            swipeRefreshLayout.setOnRefreshListener {
-//                refreshData()
-//            }
+            swipeRefreshLayout.setOnRefreshListener {
+                refreshData()
+            }
         }
-//        handleRcv()
+        handleRcv()
     }
 
     override fun initText() {
@@ -66,30 +63,33 @@ class CategoryActivity : BaseActivity<ActivityCategoryBinding>() {
     }
 
     private fun initRcv() {
-//        binding.apply {
-//            rcv.adapter = avatarAdapter
-//            rcv.itemAnimator = null
-//        }
+        binding.apply {
+            rcv.adapter = avatarAdapter
+            rcv.itemAnimator = null
+        }
     }
     private fun handleRcv(){
         binding.apply {
             avatarAdapter.onItemClick = { path, position ->
-                startIntent(CustomizeActivity::class.java, position)
+//                val customizeData = dataViewModel.allData.value[position]
+                startIntentRightToLeft(CustomizeActivity::class.java, position)
+
             }
+
         }
     }
-//
-//    private fun refreshData(){
-//        if (dataViewModel.allData.value.size < ValueKey.POSITION_API && InternetHelper.checkInternet(this)){
-//            lifecycleScope.launch {
-//                showLoading()
-//                delay(300)
-//                dataViewModel.ensureData(this@CategoryActivity)
-//                binding.swipeRefreshLayout.isRefreshing = false
-//            }
-//        }else{
-//            binding.swipeRefreshLayout.isRefreshing = false
-//        }
-//    }
+
+    private fun refreshData(){
+        if (dataViewModel.allData.value.size < ValueKey.POSITION_API && InternetHelper.checkInternet(this)){
+            lifecycleScope.launch {
+                showLoading()
+                delay(300)
+                dataViewModel.ensureData(this@CategoryActivity)
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
+        }else{
+            binding.swipeRefreshLayout.isRefreshing = false
+        }
+    }
 
 }

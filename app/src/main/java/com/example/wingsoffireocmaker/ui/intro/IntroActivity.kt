@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.view.LayoutInflater
 import com.example.wingsoffireocmaker.core.base.BaseActivity
+import com.example.wingsoffireocmaker.core.extensions.startIntentAnim
 import com.example.wingsoffireocmaker.core.utils.DataLocal
 import com.example.wingsoffireocmaker.core.utils.SystemUtils
+import com.example.wingsoffireocmaker.core.utils.key.IntentKey.FROM_INTRO
 import com.example.wingsoffireocmaker.databinding.ActivityIntroBinding
 import com.example.wingsoffireocmaker.ui.home.HomeActivity
 import com.example.wingsoffireocmaker.ui.permission.PermissionActivity
@@ -48,13 +50,11 @@ class IntroActivity : BaseActivity<ActivityIntroBinding>() {
                 if (!checkStarHome) {
                     if (SystemUtils.getFirstPermission(this@IntroActivity)) {
                         checkStarHome = true
-                        val intent = Intent(this@IntroActivity, PermissionActivity::class.java)
-                        startActivity(intent)
+                        startIntentAnim(PermissionActivity::class.java)
                         finishAffinity()
                     } else {
                         checkStarHome = true
-                        val intent = Intent(this@IntroActivity, HomeActivity::class.java)
-                        startActivity(intent)
+                        startIntentAnim(HomeActivity::class.java,FROM_INTRO)
                         finishAffinity()
                     }
                 }

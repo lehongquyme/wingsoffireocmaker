@@ -16,6 +16,7 @@ import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.databinding.ActivitySplashBinding
 import com.example.wingsoffireocmaker.ui.intro.IntroActivity
 import com.example.wingsoffireocmaker.ui.language.LanguageActivity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.getValue
 import kotlin.jvm.java
@@ -43,6 +44,7 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
         lifecycleScope.launch {
             viewModel.allData.collect { data ->
                 if (data.isNotEmpty()){
+                    delay(3000)
                     if (SystemUtils.isFirstLang(this@SplashActivity)) {
                         startActivity(Intent(this@SplashActivity, LanguageActivity::class.java))
                         check = true

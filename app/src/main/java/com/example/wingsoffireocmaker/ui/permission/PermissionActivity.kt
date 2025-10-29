@@ -2,6 +2,8 @@ package com.example.wingsoffireocmaker.ui.permission
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Build
@@ -38,8 +40,10 @@ import com.example.wingsoffireocmaker.core.utils.SystemUtils.setNotificationPerm
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.setStoragePermission
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.storagePermission
 import com.example.wingsoffireocmaker.R
+import com.example.wingsoffireocmaker.core.utils.key.IntentKey.FROM_INTRO
 import com.example.wingsoffireocmaker.databinding.ActivityPermissionBinding
 import com.example.wingsoffireocmaker.ui.home.HomeActivity
+import androidx.core.graphics.toColorInt
 
 class PermissionActivity: BaseActivity<ActivityPermissionBinding>() {
     override fun setViewBinding(): ActivityPermissionBinding {
@@ -85,7 +89,7 @@ class PermissionActivity: BaseActivity<ActivityPermissionBinding>() {
             }
 
             txtContinue.onSingleClick(1500) {
-                startIntentAnim(HomeActivity::class.java)
+                startIntentAnim(HomeActivity::class.java,FROM_INTRO)
                 SystemUtils.setFirstPermission(this@PermissionActivity, false)
                 finishAffinity()
             }
@@ -97,31 +101,21 @@ class PermissionActivity: BaseActivity<ActivityPermissionBinding>() {
 
     override fun initText() {
         binding.apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                txtPer.text = TextUtils.concat(
-                    changeColor(
-                        this@PermissionActivity, resources.getString(R.string.allow), R.color.brown, R.font.londrina_solid_regular
-                    ), " ", changeColor(
-                        this@PermissionActivity, resources.getString(R.string.app_name), R.color.brown, R.font.londrina_solid_regular
-                    ), " ",
+            val allowText = getString(R.string.allow)
+            val appName = getString(R.string.app_name)
+            val toAccess = getString(R.string.to_access)
 
-                    changeColor(
-                        this@PermissionActivity, resources.getString(R.string.to_access_13), R.color.brown, R.font.londrina_solid_regular
-                    )
-                )
-            } else {
-                txtPer.text = TextUtils.concat(
-                    changeColor(
-                        this@PermissionActivity, resources.getString(R.string.allow), R.color.brown, R.font.londrina_solid_regular
-                    ), " ", changeColor(
-                        this@PermissionActivity, resources.getString(R.string.app_name), R.color.brown, R.font.londrina_solid_regular
-                    ), " ", changeColor(
-                        this@PermissionActivity, resources.getString(R.string.to_access), R.color.brown, R.font.londrina_solid_regular
-                    )
-                )
+            txtPer.text = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                    "$allowText $appName $toAccess (Android 13+)"
+                }
+                else -> {
+                    "$allowText $appName $toAccess"
+                }
             }
         }
     }
+
     private fun initData() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             binding.layoutNotifi.show()
@@ -132,23 +126,7 @@ class PermissionActivity: BaseActivity<ActivityPermissionBinding>() {
         }
     }
 
-    private fun changeColor(
-        context: Context,
-        text: String,
-        color: Int,
-        fontfamily: Int,
-    ): SpannableString {
-        val spannableString = SpannableString(text)
-        spannableString.setSpan(
-            ForegroundColorSpan(context.getColor(color)), 0, text.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        val font = ResourcesCompat.getFont(context, fontfamily)
-        val typefaceSpan = CustomTypefaceSpan("", font)
-        spannableString.setSpan(
-            typefaceSpan, 0, text.length, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        return spannableString
-    }
+
 
     class CustomTypefaceSpan(private val family: String, private val typeface: Typeface?) : TypefaceSpan(family) {
 

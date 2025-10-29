@@ -98,7 +98,7 @@ object AssetHelper {
         val customList = ArrayList<CustomizeModel>()
         val assetManager = context.assets
 
-        // "character_1, character_2,..."
+        // "character_1, character_1,..."
         val characterList = assetManager.list(AssetsKey.DATA)
         val sortedCharacter = MediaHelper.sortAsset(characterList)
         Log.d("nbhieu", "----------------------------------------------------------------------------------")

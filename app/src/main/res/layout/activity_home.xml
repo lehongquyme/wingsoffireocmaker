@@ -22,7 +22,6 @@
         android:id="@+id/txtTitleHome"
         android:layout_width="360dp"
         android:layout_height="140dp"
-        android:layout_marginTop="-30dp"
         android:adjustViewBounds="true"
         android:scaleType="fitXY"
         android:src="@drawable/img_title_splash"
@@ -47,7 +46,7 @@
             android:orientation="vertical">
 
             <FrameLayout
-                android:id="@+id/btnCreate"
+                android:id="@+id/btnWing"
                 android:layout_width="match_parent"
                 android:layout_height="150dp"
 
@@ -80,7 +79,7 @@
                     android:textColor="#FC2BA3"
                     android:textSize="32sp"
                     app:strokeColor="#FFFFFF"
-                    app:strokeWidth="2dp" />
+                    app:strokeWidth="1dp" />
 
 
             </FrameLayout>
@@ -134,12 +133,14 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerSticker"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:overScrollMode="never"
                 android:clipToPadding="false"
-                android:layout_marginHorizontal="20dp"
+                android:paddingTop="8dp"
                 tools:listitem="@layout/item_list_sticker"
-                />
+                 />
+
 
         </LinearLayout>
 

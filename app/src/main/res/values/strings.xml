@@ -24,8 +24,7 @@
     <string name="denied_storage">Storage permission denied</string>
     <string name="reject_access">Please grant storage permission to use the application</string>
     <string name="allow">Allow</string>
-    <string name="to_access">to access photos on your device</string>
-    <string name="to_access_13">to access notification on your device</string>
+    <string name="to_access">to access\nphotos, media and files on your device</string>
 
     <string name="rate_us">Rate Us</string>
     <string name="share_app">Share App</string>
@@ -99,4 +98,8 @@
     <string name="save_failed_please_try_again">Save failed! Please try again.</string>
     <string name="reset_your_customize">Reset your customize</string>
     <string name="change_your_whole_design_are_you_sure">Change your whole design, are you sure?</string>
+    <string name="you_dont_character">You don\'t have any character</string>
+    <string name="delete_success">Delete Success</string>
+    <string name="delete_failed">Delete Fail</string>
+    <string name="select_imgae">You haven’t selected any photos</string>
 </resources>

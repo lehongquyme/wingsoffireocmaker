@@ -2,6 +2,7 @@ package com.example.wingsoffireocmaker.core.utils
 
 
 import android.content.Context
+import android.util.Log
 import com.example.wingsoffireocmaker.core.utils.KeyApp.ASSET_MANAGER
 import com.example.wingsoffireocmaker.core.utils.KeyApp.AVATAR_ASSET
 import com.example.wingsoffireocmaker.core.utils.KeyApp.AVATAR_STICKER_ASSET
@@ -89,14 +90,47 @@ object DataLocal {
         sortedBg!!.forEach {
             returnBg.add("$ASSET_MANAGER/$BG_ASSET/$it")
         }
-
-        val i = 0
-        for(i in 24 .. 95) {
-            returnBg.add("https://lvtglobal.site/public/app/HandsomeManCreator/bg/" + i + ".png")
-        }
+         //call api background
+//        val i = 0
+//        for(i in 24 .. 95) {
+//            returnBg.add("https://lvtglobal.site/public/app/HandsomeManCreator/bg/" + i + ".png")
+//        }
 
         return returnBg
     }
+
+//    fun getBgAsset(context: Context): ArrayList<String> {
+//        val list = arrayListOf<String>()
+//
+//        list.add("none")
+//
+//        try {
+//            // Lấy danh sách file trong thư mục assets/background
+//            val assetManager = context.assets
+//            val allBg = assetManager.list("background")
+//
+//            Log.d("getBgAsset", "Files in assets/background: ${allBg?.joinToString()}")
+//
+//            allBg
+//                ?.filter {
+//                    // Chỉ lấy file ảnh
+//                    it.endsWith(".png") || it.endsWith(".jpg") || it.endsWith(".jpeg") || it.endsWith(".webp")
+//                }
+//                ?.sortedWith(compareBy {
+//                    // Sắp xếp theo số trong tên file (1.png, 2.png, 3.png)
+//                    Regex("\\d+").find(it)?.value?.toIntOrNull() ?: Int.MAX_VALUE
+//                })
+//                ?.forEach {
+//                    // ✅ Thêm path đúng chuẩn asset
+//                    list.add("file:///android_asset/background/$it")
+//                }
+//
+//        } catch (e: Exception) {
+//            Log.e("getBgAsset", "Error loading backgrounds", e)
+//        }
+//
+//        return list
+//    }
 
 
 
@@ -386,6 +420,7 @@ object DataLocal {
 //        }
 //        return layerPath
 //    }
+
 
 
 

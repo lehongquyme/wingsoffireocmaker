@@ -1,9 +1,13 @@
 package com.example.wingsoffireocmaker.ui.customize
 
+import android.content.Intent
 import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.core.base.BaseActivity
 import com.example.wingsoffireocmaker.core.dialog.ConfirmDialog
 import com.example.wingsoffireocmaker.core.extensions.dLog
@@ -14,15 +18,17 @@ import com.example.wingsoffireocmaker.core.extensions.onSingleClick
 import com.example.wingsoffireocmaker.core.extensions.showToast
 import com.example.wingsoffireocmaker.core.extensions.startIntent
 import com.example.wingsoffireocmaker.core.extensions.visible
+import com.example.wingsoffireocmaker.core.helper.MediaHelper
 import com.example.wingsoffireocmaker.core.utils.SaveState
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.setLocale
 import com.example.wingsoffireocmaker.core.utils.key.IntentKey
 import com.example.wingsoffireocmaker.core.utils.key.ValueKey
 import com.example.wingsoffireocmaker.data.custom.ItemNavCustomModel
-import com.example.wingsoffireocmaker.ui.home.DataViewModel
-import com.example.wingsoffireocmaker.R
+import com.example.wingsoffireocmaker.data.model.SuggestionModel
 import com.example.wingsoffireocmaker.databinding.ActivityCustomizeBinding
 import com.example.wingsoffireocmaker.ui.background.BackgroundActivity
+import com.example.wingsoffireocmaker.ui.home.DataViewModel
+import com.example.wingsoffireocmaker.ui.success.SuccessActivity
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,16 +36,22 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.collections.indexOfFirst
-import kotlin.collections.isNotEmpty
-import kotlin.getValue
+import kotlin.text.get
 
 class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
     private val viewModel: CustomizeViewModel by viewModels()
     private val dataViewModel: DataViewModel by viewModels()
-    val colorLayerAdapter by lazy { ColorLayerAdapter(this) }
-    val customizeLayerAdapter by lazy { CustomizeLayerAdapter(this) }
-    val bottomNavigationAdapter by lazy { BottomNavigationAdapter(this) }
+    val colorLayerCustomizeAdapter by lazy { ColorLayerAdapter(this) }
+    val layerCustomizeAdapter by lazy { CustomizeLayerAdapter(this) }
+    val bottomNavigationCustomizeAdapter by lazy { BottomNavigationAdapter(this) }
+    val hideList: ArrayList<View> by lazy {
+        arrayListOf(
+            binding.btnRandom,
+            binding.layoutRcvColor,
+            binding.rcvLayer,
+            binding.flBottomNav
+        )
+    }
 
     override fun setViewBinding(): ActivityCustomizeBinding {
         return ActivityCustomizeBinding.inflate(LayoutInflater.from(this))
@@ -57,6 +69,7 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
             dataViewModel.allData.collect { list ->
                 if (list.isNotEmpty()) {
                     viewModel.positionSelected = intent.getIntExtra(IntentKey.INTENT_KEY, 0)
+                    viewModel.statusFrom = intent.getIntExtra(IntentKey.STATUS_FROM_KEY, ValueKey.CREATE)
                     viewModel.setDataCustomize(list[viewModel.positionSelected])
                     viewModel.setIsDataAPI(viewModel.positionSelected >= ValueKey.POSITION_API)
                     initData()
@@ -68,27 +81,44 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
         lifecycleScope.launch {
             viewModel.isFlip.collect { status ->
                 val rotation = if (status) -180f else 0f
-                viewModel.imageViewList.value.forEachIndexed { index, view ->
-                    view.rotationY = rotation
-                }
-            }
-        }
-
-        // bottomNavigationList
-        lifecycleScope.launch {
-            viewModel.bottomNavigationList.collect { bottomNavigationList ->
-                if (bottomNavigationList.isNotEmpty()) {
-                    bottomNavigationAdapter.submitList(bottomNavigationList)
-                    customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
-                    colorLayerAdapter.submitList(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value])
-                    if (viewModel.colorItemNavList.value[viewModel.positionNavSelected.value].isNotEmpty()) {
-                        binding.rcvColor.smoothScrollToPosition(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value].indexOfFirst { it.isSelected })
+                // chỉ thao tác nếu imageViewList đã được khởi tạo và có cùng kích thước
+                if (viewModel.imageViewList.isNotEmpty()) {
+                    viewModel.imageViewList.forEach { view ->
+                        view.rotationY = rotation
                     }
                 }
             }
         }
-    }
+        lifecycleScope.launch {
+            viewModel.isHideView.collect { status ->
+                if (viewModel.isCreated.value) {
+                    if (!status) {
+                        hideList.forEach { it.visible() }
+                        checkStatusColor()
+                    } else {
+                        hideList.forEach { it.invisible() }
+                    }
+                }
+            }
+        }
 
+
+        // bottomNavigationList
+        // bottomNavigationList
+        lifecycleScope.launch {
+            viewModel.bottomNavigationList.collect { bottomNavigationList ->
+                if (bottomNavigationList.isNotEmpty()) {
+                    bottomNavigationCustomizeAdapter.submitList(bottomNavigationList)
+                    layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    if (viewModel.colorItemNavList[viewModel.positionNavSelected].isNotEmpty()) {
+                        binding.rcvColor.smoothScrollToPosition(viewModel.colorItemNavList[viewModel.positionNavSelected].indexOfFirst { it.isSelected })
+                    }
+                    checkStatusColor()
+                }
+            }
+        }
+    }
     override fun viewListener() {
         binding.apply {
             actionBar.apply {
@@ -98,6 +128,7 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
             btnRandom.onSingleClick { viewModel.checkDataInternet(this@CustomizeActivity) { handleRandomAllLayer() } }
             btnReset.onSingleClick { handleReset() }
             btnFlip.onSingleClick { viewModel.setIsFlip() }
+
         }
         handleRcv()
     }
@@ -105,47 +136,53 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
     override fun initText() {
 
     }
+
+
+
     private fun initRcv() {
         binding.apply {
             rcvLayer.apply {
-                adapter = customizeLayerAdapter
+                adapter = layerCustomizeAdapter
                 itemAnimator = null
             }
 
             rcvColor.apply {
-                adapter = colorLayerAdapter
+                adapter = colorLayerCustomizeAdapter
                 itemAnimator = null
             }
 
             rcvNavigation.apply {
-                adapter = bottomNavigationAdapter
+                adapter = bottomNavigationCustomizeAdapter
                 itemAnimator = null
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+
             }
         }
     }
 
     private fun handleRcv() {
-        customizeLayerAdapter.onItemClick =
+        layerCustomizeAdapter.onItemClick =
             { item, position -> viewModel.checkDataInternet(this) { handleFillLayer(item, position) } }
 
-        customizeLayerAdapter.onNoneClick =
+        layerCustomizeAdapter.onNoneClick =
             { position -> viewModel.checkDataInternet(this) { handleNoneLayer(position) } }
 
-        customizeLayerAdapter.onRandomClick = { viewModel.checkDataInternet(this) { handleRandomLayer() } }
+        layerCustomizeAdapter.onRandomClick = { viewModel.checkDataInternet(this) { handleRandomLayer() } }
 
-        colorLayerAdapter.onItemClick =
+        colorLayerCustomizeAdapter.onItemClick =
             { position -> viewModel.checkDataInternet(this) { handleChangeColorLayer(position) } }
 
-        bottomNavigationAdapter.onItemClick =
+        bottomNavigationCustomizeAdapter.onItemClick =
             { positionBottomNavigation -> handleClickBottomNavigation(positionBottomNavigation) }
     }
 
-    private fun initData(){
+    private fun initData() {
         val handleExceptionCoroutine = CoroutineExceptionHandler { _, throwable ->
             eLog("initData: ${throwable.message}")
             CoroutineScope(Dispatchers.Main).launch {
                 dismissLoading(true)
-                val dialogExit = ConfirmDialog(this@CustomizeActivity, R.string.error, R.string.an_error_occurred)
+                val dialogExit =
+                    ConfirmDialog(this@CustomizeActivity, R.string.error, R.string.an_error_occurred)
                 dialogExit.show()
                 dialogExit.onNoClick = {
                     dialogExit.dismiss()
@@ -153,7 +190,7 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
                 }
                 dialogExit.onYesClick = {
                     dialogExit.dismiss()
-                    hideNavigation(true)
+                    hideNavigation()
                     startIntent(CustomizeActivity::class.java, viewModel.positionSelected)
                     finish()
                 }
@@ -164,10 +201,27 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
             var pathImageDefault = ""
             // Get data from list
             val deferred1 = async {
-                viewModel.resetDataList()
-                viewModel.addValueToItemNavList()
-                viewModel.setItemColorDefault()
-                viewModel.setFocusItemNavDefault()
+                when (viewModel.statusFrom) {
+                    ValueKey.CREATE -> {
+                        viewModel.resetDataList()
+                        viewModel.addValueToItemNavList()
+                        viewModel.setItemColorDefault()
+                        viewModel.setFocusItemNavDefault()
+                    }
+
+                    // Edit
+                    else -> {
+                        viewModel.updateSuggestionModel(
+                            MediaHelper.readListFromFile<SuggestionModel>(
+                                this@CustomizeActivity,
+                                ValueKey.SUGGESTION_FILE_INTERNAL
+                            ).first()
+                        )
+                        viewModel.fillSuggestionToCustomize()
+                    }
+                }
+
+                // đảm bảo positionNavSelected và positionCustom được set
                 viewModel.setPositionCustom(viewModel.dataCustomize.value!!.layerList.first().positionCustom)
                 viewModel.setPositionNavSelected(viewModel.dataCustomize.value!!.layerList.first().positionNavigation)
                 viewModel.setBottomNavigationListDefault()
@@ -178,28 +232,59 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
             val deferred2 = async(Dispatchers.Main) {
                 if (deferred1.await()) {
                     viewModel.setImageViewList(binding.layoutCustomLayer)
-                    dLog("deferred3")
-                }
-                return@async true
-            }
-            // Fill data default
-            val deferred3 = async {
-                if (deferred1.await() && deferred2.await()) {
-                    pathImageDefault = viewModel.dataCustomize.value!!.layerList.first().layer.first().image
-                    viewModel.setIsSelectedItem(viewModel.positionCustom.value)
-                    viewModel.setPathSelected(viewModel.positionCustom.value, pathImageDefault)
-                    viewModel.setKeySelected(viewModel.positionNavSelected.value, pathImageDefault)
-                    dLog("deferred5")
+                    dLog("deferred2")
                 }
                 return@async true
             }
 
-            withContext(Dispatchers.Main){
-                if (deferred1.await() && deferred2.await() && deferred3.await()){
-                    Glide.with(this@CustomizeActivity).load(pathImageDefault).into(viewModel.imageViewList.value[viewModel.positionCustom.value])
-                    customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
-                    colorLayerAdapter.submitList(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value])
+            // Fill data default
+            val deferred3 = async {
+                if (deferred1.await() && deferred2.await()) {
+                    if (viewModel.statusFrom == ValueKey.CREATE){
+                        pathImageDefault = viewModel.dataCustomize.value!!.layerList.first().layer.first().image
+                        viewModel.setIsSelectedItem(viewModel.positionCustom)
+                        viewModel.setPathSelected(viewModel.positionCustom, pathImageDefault)
+                        viewModel.setKeySelected(viewModel.positionNavSelected, pathImageDefault)
+                    }
+                    dLog("deferred3")
+                }
+                return@async true
+            }
+
+            withContext(Dispatchers.Main) {
+                if (deferred1.await() && deferred2.await() && deferred3.await()) {
+                    when (viewModel.statusFrom) {
+                        ValueKey.CREATE -> {
+                            // Bảo vệ: kiểm tra index hợp lệ
+                            val pos = viewModel.positionCustom
+                            if (pos in viewModel.imageViewList.indices) {
+                                Glide.with(this@CustomizeActivity).load(pathImageDefault)
+                                    .into(viewModel.imageViewList[pos])
+                            }
+                        }
+
+                        // Edit
+                        else -> {
+                            viewModel.pathSelectedList.forEachIndexed { index, path ->
+                                if (path != "" && index in viewModel.imageViewList.indices){
+                                    Glide.with(this@CustomizeActivity).load(path)
+                                        .into(viewModel.imageViewList[index])
+                                }
+                            }
+                        }
+                    }
+
+                    // đảm bảo positionNavSelected hợp lệ trước khi gọi adapters
+                    val posNav = viewModel.positionNavSelected
+                    if (posNav in 0 until viewModel.itemNavList.size) {
+                        layerCustomizeAdapter.submitList(viewModel.itemNavList[posNav])
+                    }
+                    if (posNav in 0 until viewModel.colorItemNavList.size) {
+                        colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[posNav])
+                    }
+
                     checkStatusColor()
+                    viewModel.setIsCreated(true)
                     dismissLoading()
                     dLog("main")
                 }
@@ -208,8 +293,9 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
     }
 
     private fun checkStatusColor() {
-        if (viewModel.colorItemNavList.value[viewModel.positionNavSelected.value].isNotEmpty()) {
-            if (viewModel.isShowColorList.value[viewModel.positionNavSelected.value]) {
+        val pos = viewModel.positionNavSelected
+        if (pos in viewModel.colorItemNavList.indices && viewModel.colorItemNavList[pos].isNotEmpty()) {
+            if (viewModel.isShowColorList.getOrNull(pos) == true) {
                 binding.layoutRcvColor.visible()
             } else {
                 binding.layoutRcvColor.invisible()
@@ -219,25 +305,33 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
         }
     }
 
+
     private fun handleFillLayer(item: ItemNavCustomModel, position: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
             val pathSelected = viewModel.setClickFillLayer(item, position)
             withContext(Dispatchers.Main) {
-                Glide.with(this@CustomizeActivity).load(pathSelected)
-                    .into(viewModel.imageViewList.value[viewModel.positionCustom.value])
-                customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
+                val pos = viewModel.positionCustom
+                if (pos in viewModel.imageViewList.indices) {
+                    Glide.with(this@CustomizeActivity).load(pathSelected)
+                        .into(viewModel.imageViewList[pos])
+                }
+                layerCustomizeAdapter.submitList(viewModel.itemNavList.getOrNull(viewModel.positionNavSelected)!!)
             }
         }
     }
 
     private fun handleNoneLayer(position: Int) {
         lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.setIsSelectedItem(viewModel.positionCustom.value)
-            viewModel.setPathSelected(viewModel.positionCustom.value, "")
-            viewModel.setItemNavList(viewModel.positionNavSelected.value, position)
+            viewModel.setIsSelectedItem(viewModel.positionCustom)
+            viewModel.setPathSelected(viewModel.positionCustom, "")
+            viewModel.setKeySelected(viewModel.positionNavSelected, "")
+            viewModel.setItemNavList(viewModel.positionNavSelected, position)
             withContext(Dispatchers.Main) {
-                Glide.with(this@CustomizeActivity).clear(viewModel.imageViewList.value[viewModel.positionCustom.value])
-                customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
+                val pos = viewModel.positionCustom
+                if (pos in viewModel.imageViewList.indices) {
+                    Glide.with(this@CustomizeActivity).clear(viewModel.imageViewList[pos])
+                }
+                layerCustomizeAdapter.submitList(viewModel.itemNavList.getOrNull(viewModel.positionNavSelected)!!)
             }
         }
     }
@@ -246,12 +340,15 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
         lifecycleScope.launch(Dispatchers.IO) {
             val (pathRandom, isMoreColors) = viewModel.setClickRandomLayer()
             withContext(Dispatchers.Main) {
-                Glide.with(this@CustomizeActivity).load(pathRandom)
-                    .into(viewModel.imageViewList.value[viewModel.positionCustom.value])
-                customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
+                val pos = viewModel.positionCustom
+                if (pos in viewModel.imageViewList.indices) {
+                    Glide.with(this@CustomizeActivity).load(pathRandom)
+                        .into(viewModel.imageViewList[pos])
+                }
+                layerCustomizeAdapter.submitList(viewModel.itemNavList.getOrNull(viewModel.positionNavSelected)!!)
                 if (isMoreColors) {
-                    colorLayerAdapter.submitList(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value])
-                    binding.rcvColor.smoothScrollToPosition(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value].indexOfFirst { it.isSelected })
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                    binding.rcvColor.smoothScrollToPosition(viewModel.colorItemNavList[viewModel.positionNavSelected].indexOfFirst { it.isSelected })
                 }
             }
         }
@@ -261,25 +358,41 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
         lifecycleScope.launch(Dispatchers.IO) {
             val pathColor = viewModel.setClickChangeColor(position)
             withContext(Dispatchers.Main) {
-                Glide.with(this@CustomizeActivity).load(pathColor).into(viewModel.imageViewList.value[viewModel.positionCustom.value])
-                colorLayerAdapter.submitList(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value])
+                if (pathColor != "") {
+                    val pos = viewModel.positionCustom
+                    if (pos in viewModel.imageViewList.indices) {
+                        Glide.with(this@CustomizeActivity).load(pathColor)
+                            .into(viewModel.imageViewList[pos])
+                    }
+                }
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+
             }
         }
     }
 
     private fun handleClickBottomNavigation(positionBottomNavigation: Int) {
-        if (positionBottomNavigation == viewModel.positionNavSelected.value) return
+        if (positionBottomNavigation == viewModel.positionNavSelected) return
+
         lifecycleScope.launch(Dispatchers.IO) {
+            // Cập nhật state trong ViewModel
             viewModel.setPositionNavSelected(positionBottomNavigation)
             viewModel.setPositionCustom(viewModel.dataCustomize.value!!.layerList[positionBottomNavigation].positionCustom)
             viewModel.setClickBottomNavigation(positionBottomNavigation)
-            withContext(Dispatchers.Main) { checkStatusColor() }
+
+            // Không reload lại toàn bộ nav, chỉ update focus
+            withContext(Dispatchers.Main) {
+                bottomNavigationCustomizeAdapter.select(positionBottomNavigation)
+                layerCustomizeAdapter.submitList(viewModel.itemNavList[viewModel.positionNavSelected])
+                colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                checkStatusColor()
+            }
         }
     }
 
+
     private fun confirmExit() {
-        val dialog =
-            ConfirmDialog(this, R.string.exit_your_customize, R.string.haven_t_saved_it_yet_do_you_want_to_exit)
+        val dialog = ConfirmDialog(this, R.string.exit, R.string.haven_t_saved_it_yet_do_you_want_to_exit)
         setLocale(this)
         dialog.show()
         dialog.onYesClick = {
@@ -304,8 +417,13 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
 
                     is SaveState.Success -> {
                         dismissLoading(true)
-                        startIntent(BackgroundActivity::class.java, result.path)
-                    }
+                        val savedPath = result.path
+                        val selectedBackground = viewModel.selectedBackgroundPath ?: ""
+
+                        val intent = Intent(this@CustomizeActivity, BackgroundActivity::class.java)
+                        intent.putExtra(IntentKey.PREVIOUS_IMAGE_KEY, savedPath)
+                        intent.putExtra(IntentKey.BACKGROUND_IMAGE_KEY, selectedBackground)
+                        startActivity(intent)                    }
                 }
             }
         }
@@ -314,7 +432,7 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
     private fun handleReset() {
         val dialog = ConfirmDialog(
             this@CustomizeActivity,
-            R.string.reset_your_customize,
+            R.string.reset,
             R.string.change_your_whole_design_are_you_sure
         )
         setLocale(this)
@@ -325,12 +443,18 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
                 lifecycleScope.launch(Dispatchers.IO) {
                     val pathDefault = viewModel.setClickReset()
                     withContext(Dispatchers.Main) {
-                        viewModel.imageViewList.value.forEach { imageView ->
+                        viewModel.imageViewList.forEach { imageView ->
                             Glide.with(this@CustomizeActivity).clear(imageView)
                         }
-                        Glide.with(this@CustomizeActivity).load(pathDefault).into(viewModel.imageViewList.value[viewModel.dataCustomize.value!!.layerList.first().positionCustom])
-                        customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
-                        colorLayerAdapter.submitList(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value])
+                        val pos = viewModel.dataCustomize.value!!.layerList.first().positionCustom
+                        if (pos in viewModel.imageViewList.indices) {
+                            Glide.with(this@CustomizeActivity).load(pathDefault)
+                                .into(viewModel.imageViewList[pos])
+                        }
+                        layerCustomizeAdapter.submitList(viewModel.itemNavList.getOrNull(viewModel.positionNavSelected)!!)
+                        if (viewModel.positionNavSelected in viewModel.colorItemNavList.indices) {
+                            colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                        }
                         hideNavigation()
                     }
                 }
@@ -346,16 +470,31 @@ class CustomizeActivity : BaseActivity<ActivityCustomizeBinding>() {
         lifecycleScope.launch(Dispatchers.IO) {
             val timeStart = System.currentTimeMillis()
             val isOutTurn = viewModel.setClickRandomFullLayer()
+
             withContext(Dispatchers.Main) {
-                viewModel.pathSelectedList.value.forEachIndexed { index, path ->
-                    if (path != "") Glide.with(this@CustomizeActivity).load(path).into(viewModel.imageViewList.value[index])
+                viewModel.pathSelectedList.forEachIndexed { index, path ->
+                    if (path.isNotEmpty() && index in viewModel.imageViewList.indices) {
+                        Glide.with(this@CustomizeActivity)
+                            .load(path)
+                            .into(viewModel.imageViewList[index])
+                    } else if (index in viewModel.imageViewList.indices && path.isEmpty()){
+                        Glide.with(this@CustomizeActivity).clear(viewModel.imageViewList[index])
+                    }
                 }
-                customizeLayerAdapter.submitList(viewModel.itemNavList.value[viewModel.positionNavSelected.value])
-                colorLayerAdapter.submitList(viewModel.colorItemNavList.value[viewModel.positionNavSelected.value])
+                layerCustomizeAdapter.submitList(viewModel.itemNavList.getOrNull(viewModel.positionNavSelected)!!)
+                if (viewModel.positionNavSelected in viewModel.colorItemNavList.indices) {
+                    colorLayerCustomizeAdapter.submitList(viewModel.colorItemNavList[viewModel.positionNavSelected])
+                }
                 if (isOutTurn) binding.btnRandom.invisible()
                 val timeEnd = System.currentTimeMillis()
                 dLog("time random all : ${timeEnd - timeStart}")
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.setIsCreated(false)
+    }
+
 }

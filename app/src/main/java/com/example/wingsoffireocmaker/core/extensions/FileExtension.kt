@@ -93,6 +93,7 @@ fun saveBitmapToInternalStorage1(context: Context, bitmap: Bitmap, fileName: Str
         null
     }
 }
+
 fun Activity.saveBitmapToInternalStorage(album: String, bitmap: Bitmap): String? {
     val name = generateRandomFileName()
 
@@ -118,7 +119,7 @@ fun Activity.saveBitmapToInternalStorage(album: String, bitmap: Bitmap): String?
         null
     }
 }
-
+// Lấy danh sách và sắp xếp giảm dần theo thời gian
 
 fun getImageInternal(context: Context, album: String): ArrayList<String> {
     val imagePaths = ArrayList<String>()
@@ -160,9 +161,9 @@ fun writeListToFile(context: Context, fileName: String, list: ArrayList<DataMode
         context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
             output.write(json.toByteArray())
         }
-        Log.d("CustomizeActivity", "File saved to: ${context.filesDir}/$fileName")
+        Log.d("CustomizeRepository", "File saved to: ${context.filesDir}/$fileName")
     } catch (e: Exception) {
-        Log.e("CustomizeActivity", "❌ Lỗi ghi file: ${e.message}")
+        Log.e("CustomizeRepository", "❌ Lỗi ghi file: ${e.message}")
     }
 }
 
@@ -179,6 +180,7 @@ fun readListFromFile(context: Context, fileName: String): ArrayList<DataModel> {
         arrayListOf()
     }
 }
+
 fun readDataDefaultAssets(context: Context): ArrayList<DataModel> {
     return try {
         val json = context.assets.open("$DATA_DEFAULT/$HALLOWEEN_AVAILABLE_FILE").bufferedReader().use { it.readText() }

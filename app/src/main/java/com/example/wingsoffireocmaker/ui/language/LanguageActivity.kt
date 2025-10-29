@@ -17,12 +17,11 @@ import com.example.wingsoffireocmaker.core.utils.SystemUtils.setFirstLang
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.setPreLanguage
 import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.databinding.ActivityLanguageBinding
-import com.example.wingsoffireocmaker.ui.home.HomeActivity
 import com.example.wingsoffireocmaker.ui.intro.IntroActivity
 import com.example.wingsoffireocmaker.data.model.LanguageModel
+import com.example.wingsoffireocmaker.ui.home.HomeActivity
 import kotlin.collections.forEach
 import kotlin.system.exitProcess
-
 class LanguageActivity  : BaseActivity<ActivityLanguageBinding>() {
     private var listLanguage: ArrayList<LanguageModel> = arrayListOf()
     private var codeLang: String = ""
@@ -72,7 +71,7 @@ class LanguageActivity  : BaseActivity<ActivityLanguageBinding>() {
             }else{
                 isFirstAccess = true
                 codeLang = SystemUtils.getPreLanguage(this@LanguageActivity)
-                txtLanguageStart.show()
+                txtLanguageCenter.show()
                 btnDone.show()
                 btnBack.hide()
                 btnChangSetting.hide()
@@ -86,7 +85,7 @@ class LanguageActivity  : BaseActivity<ActivityLanguageBinding>() {
                 txtLanguageStart.hide()
             }else{
                 btnDone.show()
-                txtLanguageStart.show()
+                txtLanguageCenter.show()
                 btnChangSetting.hide()
             }
         }

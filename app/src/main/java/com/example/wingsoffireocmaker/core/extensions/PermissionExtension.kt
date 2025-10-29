@@ -12,6 +12,7 @@ import android.widget.Button
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
 import com.example.wingsoffireocmaker.R
 
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.setLocale
@@ -52,6 +53,6 @@ internal fun Activity.goToSettings() {
     dialog.show()
     val positiveButton: Button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
     val negativeButton: Button = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-    positiveButton.setTextColor(getColor(R.color.white))
+    positiveButton.setTextColor("#6B1B10".toColorInt())
     negativeButton.setTextColor(getColor(R.color.black))
 }

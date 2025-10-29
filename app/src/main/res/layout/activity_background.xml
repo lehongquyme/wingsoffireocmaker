@@ -88,10 +88,7 @@ app:layout_constraintBottom_toTopOf="@+id/layoutRcv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop" />
-
     </FrameLayout>
-
-
     <FrameLayout
         android:id="@+id/layoutRcv"
         android:layout_width="match_parent"

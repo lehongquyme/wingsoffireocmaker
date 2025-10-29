@@ -4,21 +4,12 @@
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <FrameLayout
-        android:id="@+id/layoutFocus1"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:background="@drawable/bg_item_focus_bg"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+
 
     <FrameLayout
         android:id="@+id/layoutFocus"
         android:layout_width="0dp"
+
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"
@@ -26,12 +17,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.cardview.widget.CardView
+        <!-- Card chứa ảnh / none -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/materialCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="2dp"
-            app:cardBackgroundColor="@color/tranf"
-            app:cardCornerRadius="7dp"
+            app:cardCornerRadius="8dp"
+            app:strokeWidth="0dp"
+            app:strokeColor="@color/white"
             app:cardElevation="0dp">
 
             <ImageView
@@ -39,21 +32,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/item_creation" />
+                android:src="@drawable/img_creation" />
 
             <ImageView
                 android:id="@+id/btnNone"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:backgroundTint="@color/white"
                 android:clickable="true"
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:src="@drawable/item_none"
-                android:visibility="gone" />
+                android:visibility="visible" />
+        </com.google.android.material.card.MaterialCardView>
 
-        </androidx.cardview.widget.CardView>
+
     </FrameLayout>
-
+    <FrameLayout
+        android:id="@+id/layoutFocus1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_item_focus_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

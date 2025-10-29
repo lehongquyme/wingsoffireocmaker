@@ -38,7 +38,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:scaleType="fitXY"
-                android:src="@drawable/img_vector_none"
+                android:src="@drawable/item_none"
                 android:visibility="gone" />
 
             <!--            btnRandom-->
@@ -48,8 +48,8 @@
                 android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/img_vector_random"
+                android:scaleType="fitXY"
+                android:src="@drawable/item_random"
                 android:visibility="gone" />
         </androidx.cardview.widget.CardView>
 
@@ -57,6 +57,7 @@
         <View
             android:id="@+id/vFocus"
             android:layout_width="match_parent"
+            android:visibility="gone"
             android:layout_height="match_parent"
             android:background="@drawable/bg_8_stroke_orange"/>
     </FrameLayout>

@@ -45,6 +45,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_margin="6dp"
                         android:padding="2dp"
+
                         />
 
                     <ImageView
@@ -54,8 +55,9 @@
                         android:layout_alignParentEnd="true"
                         android:layout_margin="6dp"
                         android:padding="2dp"
-                        android:src="@drawable/ic_tick_item"
-                        android:visibility="gone" />
+                        android:src="@drawable/ic_untick_item"
+                        android:visibility="gone"
+                         />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
         </FrameLayout>

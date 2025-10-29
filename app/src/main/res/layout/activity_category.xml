@@ -61,143 +61,23 @@
         </RelativeLayout>
     </RelativeLayout>
 
-
-    <ScrollView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="24dp"
-        android:scrollbars="none"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/actionBar">
 
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rcv"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:layout_marginVertical="10dp"
+            android:paddingHorizontal="12dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:layout_goneMarginTop="10dp"
+            tools:listitem="@layout/item_category" />
 
-            <FrameLayout
-                android:id="@+id/btnHikari"
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-
-                app:layout_constraintTop_toBottomOf="@+id/title_home">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/bg_hikari_category" />
-
-                <ImageView
-                    android:layout_marginStart="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_vertical|start"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/img_hikari_category" />
-
-
-                <com.example.wingsoffireocmaker.core.custom.StrokeTextView
-                    android:id="@+id/txtHikari"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_marginStart="0dp"
-                    android:layout_marginEnd="37dp"
-                    android:fontFamily="@font/londrina_solid_regular"
-                    android:gravity="center"
-                    android:text="@string/hikari_category"
-                    android:textColor="#F56F1C"
-                    android:textSize="32sp"
-                    app:strokeColor="#FFFFFF"
-                    app:strokeWidth="2dp" />
-
-
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/btnYume"
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginTop="12dp"
-                app:layout_constraintTop_toBottomOf="@+id/title_home">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-
-                    android:src="@drawable/bg_yume_category" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_vertical|end"
-                    android:adjustViewBounds="true"
-                    android:layout_marginEnd="23dp"
-                    android:src="@drawable/img_creation" />
-
-                <com.example.wingsoffireocmaker.core.custom.StrokeTextView
-                    android:id="@+id/txtYume"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|start"
-                    android:layout_marginStart="37dp"
-                    android:fontFamily="@font/londrina_solid_regular"
-                    android:gravity="center"
-                    android:text="@string/yume_category"
-                    android:textColor="#FF6753"
-                    android:textSize="32sp"
-                    app:strokeColor="#FFFFFF"
-                    app:strokeWidth="2dp" />
-
-
-            </FrameLayout>
- <FrameLayout
-                android:id="@+id/btnAoi"
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_marginTop="12dp"
-                app:layout_constraintTop_toBottomOf="@+id/title_home">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-
-                    android:src="@drawable/bg_aoi_category" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_vertical|start"
-                    android:adjustViewBounds="true"
-                    android:layout_marginStart="13dp"
-                    android:src="@drawable/img_aoi_category" />
-
-                <com.example.wingsoffireocmaker.core.custom.StrokeTextView
-                    android:id="@+id/txtAoi"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_marginEnd="37dp"
-                    android:fontFamily="@font/londrina_solid_regular"
-                    android:gravity="center"
-                    android:text="@string/aoi_category"
-                    android:textColor="#D924F4"
-                    android:textSize="32sp"
-                    app:strokeColor="#FFFFFF"
-                    app:strokeWidth="2dp" />
-
-
-            </FrameLayout>
-
-
-        </LinearLayout>
-
-    </ScrollView>
-
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

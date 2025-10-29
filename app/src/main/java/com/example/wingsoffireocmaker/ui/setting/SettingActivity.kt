@@ -1,6 +1,5 @@
 package com.example.wingsoffireocmaker.ui.setting
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import com.example.wingsoffireocmaker.R
@@ -12,38 +11,37 @@ import com.example.wingsoffireocmaker.core.extensions.openPlayStoreForReview
 import com.example.wingsoffireocmaker.core.extensions.showToast
 import com.example.wingsoffireocmaker.core.extensions.startIntentAnim
 import com.example.wingsoffireocmaker.core.utils.KeyApp.FROM_SETTINGS
-import com.example.wingsoffireocmaker.core.utils.KeyApp.INTENT_KEY
+import com.example.wingsoffireocmaker.core.utils.SystemUtils
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.policy
 import com.example.wingsoffireocmaker.core.utils.SystemUtils.shareApp
 import com.example.wingsoffireocmaker.databinding.ActivitySettingBinding
 import com.example.wingsoffireocmaker.ui.language.LanguageActivity
 
-class SettingActivity  : BaseActivity<ActivitySettingBinding>() {
+class SettingActivity : BaseActivity<ActivitySettingBinding>() {
     override fun setViewBinding(): ActivitySettingBinding {
         return ActivitySettingBinding.inflate(LayoutInflater.from(this))
     }
 
     override fun initView() {
-
+        if (SystemUtils.isRate(this@SettingActivity)) binding.btnRate.visibility = View.GONE
     }
 
     override fun viewListener() {
         binding.apply {
-            btnBack.onSingleClick{
+            btnBack.onSingleClick {
                 handleBack()
             }
             btnLang.onSingleClick {
-                startIntentAnim(LanguageActivity::class.java,FROM_SETTINGS)
+                startIntentAnim(LanguageActivity::class.java, FROM_SETTINGS)
             }
             btnRate.onSingleClick {
                 val rateDialog = RateDialog(this@SettingActivity)
                 rateDialog.init(object : RateDialog.OnPress {
                     override fun send(rate: Float) {
                         binding.btnRate.visibility = View.GONE
-                        if (rate>3L)
-                            openPlayStoreForReview(this@SettingActivity)
-                        else
-                            showToast(R.string.have_rated)
+                        if (rate > 3L) openPlayStoreForReview(this@SettingActivity)
+                        else showToast(R.string.have_rated)
+                        SystemUtils.setRate(this@SettingActivity, true)
                         rateDialog.dismiss()
 
                     }

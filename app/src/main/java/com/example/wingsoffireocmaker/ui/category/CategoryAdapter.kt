@@ -4,10 +4,17 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.marginEnd
+import androidx.core.view.marginStart
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.wingsoffireocmaker.R
 import com.example.wingsoffireocmaker.core.extensions.onSingleClick
 import com.example.wingsoffireocmaker.core.utils.DataLocal.shimmer
+import com.example.wingsoffireocmaker.core.utils.SystemUtils
+import com.example.wingsoffireocmaker.core.utils.SystemUtils.layoutGrayviryEnd
+import com.example.wingsoffireocmaker.core.utils.SystemUtils.layoutGrayviryStart
 import com.example.wingsoffireocmaker.data.custom.CustomizeModel
 import com.example.wingsoffireocmaker.databinding.ItemCategoryBinding
 import com.facebook.shimmer.ShimmerDrawable
@@ -23,6 +30,8 @@ class CategoryAdapter(val context: Context): RecyclerView.Adapter<CategoryAdapte
             val shimmerDrawable = ShimmerDrawable().apply {
                 setShimmer(shimmer)
             }
+
+
             Glide.with(binding.root).load(item.avatar).placeholder(shimmerDrawable).error(shimmerDrawable).into(binding.imvImage)
 
             binding.root.onSingleClick {

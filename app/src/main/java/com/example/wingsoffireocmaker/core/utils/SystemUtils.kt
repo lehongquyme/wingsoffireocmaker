@@ -11,8 +11,12 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore.Audio.AudioColumns.IS_NOTIFICATION
 import android.util.Log
+import android.view.View
+import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ShareCompat
 import androidx.lifecycle.MutableLiveData
+import com.example.wingsoffireocmaker.core.custom.StrokeTextView
 import com.facebook.shimmer.Shimmer
 import com.facebook.shimmer.ShimmerDrawable
 import com.google.android.gms.tasks.Task
@@ -219,6 +223,40 @@ object SystemUtils {
             }
         }
     }
+    //đảo vị trí start to end
+    fun ImageView.layoutGrayviryEnd() {
+        val params = layoutParams as ConstraintLayout.LayoutParams
+        params.startToStart = ConstraintLayout.LayoutParams.UNSET
+        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        layoutParams = params
+    }
+
+ //đảo vị trí end to start
+    fun ImageView.layoutGrayviryStart() {
+        val params = layoutParams as ConstraintLayout.LayoutParams
+        params.endToEnd = ConstraintLayout.LayoutParams.UNSET
+        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+        layoutParams = params
+    }
+   fun StrokeTextView.layoutGrayviryEnd() {
+        val params = layoutParams as ConstraintLayout.LayoutParams
+        params.startToStart = ConstraintLayout.LayoutParams.UNSET
+        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        layoutParams = params
+    }
+
+ //đảo vị trí end to start
+    fun StrokeTextView.layoutGrayviryStart() {
+        val params = layoutParams as ConstraintLayout.LayoutParams
+        params.endToEnd = ConstraintLayout.LayoutParams.UNSET
+        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+        layoutParams = params
+    }
+    fun View.visibleIf(condition: Boolean) {
+        visibility = if (condition) View.VISIBLE else View.GONE
+    }
+
+
     fun getStoragePermission(context: Context): Int {
         val preferences: SharedPreferences = context.getSharedPreferences(IS_STORAGE, Context.MODE_PRIVATE)
         return preferences.getInt(STORAGE_KEY, 0)
