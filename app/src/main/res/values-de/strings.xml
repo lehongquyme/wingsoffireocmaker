@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Wings of fire oc maker</string>
+    <string name="app_name">Dragon Tribe OC Maker</string>
     <string name="go_to_setting_title">Berechtigungseinstellungen</string>
     <string name="go_to_setting_message">Die App benötigt diese Berechtigung</string>
     <string name="ok">OK</string>
@@ -81,7 +81,7 @@
     <string name="loading">Laden</string>
     <string name="it_only_takes_a_few_seconds">Es dauert nur ein paar Sekunden.</string>
     <string name="sticker">MEINE KREATION</string>
-    <string name="create_maker">WINGS OF FIRE OC MAKER</string>
+    <string name="create_maker">DRACHEN STAMM OC MAKER</string>
     <string name="hikari_category">TACHIBANA HIKARI</string>
     <string name="yume_category">KANZAKI YUME</string>
     <string name="aoi_category">SHIROSAWA AOI</string>
@@ -90,6 +90,7 @@
     <string name="add_to_whatsapp">Zu Whatsapp hinzufügen</string>
     <string name="downloading">Wird heruntergeladen...</string>
     <string name="please_check_your_internet">Bitte überprüfen Sie Ihr Internet!</string>
+    <string name="internet">Internet!</string>
     <string name="exit_your_customize">Personalisierung beenden</string>
     <string name="haven_t_saved_it_yet_do_you_want_to_exit">Noch nicht gespeichert, möchten Sie beenden?</string>
     <string name="save_failed_please_try_again">Speichern fehlgeschlagen! Bitte erneut versuchen.</string>

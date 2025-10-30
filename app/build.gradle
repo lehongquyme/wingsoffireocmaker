@@ -1,14 +1,15 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
-    namespace 'com.example.wingsoffireocmaker'
+    namespace 'com.dragon.tribe.fire.oc.maker'
     compileSdk 36
-
     defaultConfig {
-        applicationId "com.example.wingsoffireocmaker"
+        applicationId "com.dragon.tribe.fire.oc.maker"
         minSdk 24
         targetSdk 36
         versionCode 1
@@ -24,19 +25,17 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            shrinkResources false
+            shrinkResources true
             signingConfig signingConfigs.debug
         }
-        debug {
-            minifyEnabled false
-            shrinkResources false
-        }
+
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
     kotlinOptions {
+
         jvmTarget = '11'
     }
         buildFeatures{
@@ -110,4 +109,10 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.9.0"
     // swiperefreshlayout
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+//firebase
+    implementation platform('com.google.firebase:firebase-bom:31.1.1')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-messaging:23.3.1'
+    implementation 'com.google.firebase:firebase-config:21.5.0'
 }

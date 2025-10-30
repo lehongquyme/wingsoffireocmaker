@@ -167,6 +167,12 @@
                     android:fontFamily="@font/londrina_solid_regular"
                     android:gravity="center"
                     android:text="@string/share"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:scrollHorizontally="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:freezesText="true"
                     android:textColor="#6B1B10"
                     android:textSize="20sp" />
             </FrameLayout>
@@ -200,6 +206,12 @@
                     android:fontFamily="@font/londrina_solid_regular"
                     android:gravity="center"
                     android:text="@string/download"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:scrollHorizontally="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:freezesText="true"
                     android:textColor="#6B1B10"
                     android:textSize="20sp" />
             </FrameLayout>

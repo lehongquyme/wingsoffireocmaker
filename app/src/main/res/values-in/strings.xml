@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Wings of fire oc maker</string>
+    <string name="app_name">Dragon Tribe OC Maker</string>
     <string name="go_to_setting_title">Pengaturan izin</string>
     <string name="go_to_setting_message">Aplikasi membutuhkan izin ini</string>
     <string name="ok">OK</string>
@@ -81,7 +81,7 @@
     <string name="loading">Memuat</string>
     <string name="it_only_takes_a_few_seconds">Hanya membutuhkan beberapa detik.</string>
     <string name="sticker">KREASI SAYA</string>
-    <string name="create_maker">WINGS OF FIRE OC MAKER</string>
+    <string name="create_maker">Suku Naga Pembuat OC</string>
     <string name="hikari_category">TACHIBANA HIKARI</string>
     <string name="yume_category">KANZAKI YUME</string>
     <string name="aoi_category">SHIROSAWA AOI</string>
@@ -90,6 +90,7 @@
     <string name="add_to_whatsapp">Tambahkan ke Whatsapp</string>
     <string name="downloading">Mengunduh...</string>
     <string name="please_check_your_internet">Periksa internet Anda!</string>
+    <string name="internet">Internet!</string>
     <string name="exit_your_customize">Keluar dari kustomisasi</string>
     <string name="haven_t_saved_it_yet_do_you_want_to_exit">Belum disimpan, ingin keluar?</string>
     <string name="save_failed_please_try_again">Simpan gagal! Silakan coba lagi.</string>

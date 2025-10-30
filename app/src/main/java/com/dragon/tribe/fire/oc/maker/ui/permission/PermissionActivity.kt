@@ -1,0 +1,190 @@
+package com.dragon.tribe.fire.oc.maker.ui.permission
+
+import android.content.Context
+import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
+import android.os.Build
+import android.os.Bundle
+import android.text.SpannableString
+import android.text.TextPaint
+import android.text.TextUtils
+import android.text.style.ForegroundColorSpan
+import android.text.style.TypefaceSpan
+import android.view.LayoutInflater
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.dragon.tribe.fire.oc.maker.core.base.BaseActivity
+import com.dragon.tribe.fire.oc.maker.core.extensions.checkPermissions
+import com.dragon.tribe.fire.oc.maker.core.extensions.goToSettings
+import com.dragon.tribe.fire.oc.maker.core.extensions.gone
+import com.dragon.tribe.fire.oc.maker.core.extensions.hide
+import com.dragon.tribe.fire.oc.maker.core.extensions.onSingleClick
+import com.dragon.tribe.fire.oc.maker.core.extensions.requestPermission
+import com.dragon.tribe.fire.oc.maker.core.extensions.show
+import com.dragon.tribe.fire.oc.maker.core.extensions.startIntentAnim
+import com.dragon.tribe.fire.oc.maker.core.utils.KeyApp.NOTIFICATION_PERMISSION_CODE
+import com.dragon.tribe.fire.oc.maker.core.utils.KeyApp.STORAGE_PERMISSION_CODE
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils.isNotificationPermission
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils.isStoragePermission
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils.notificationPermission
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils.setNotificationPermission
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils.setStoragePermission
+import com.dragon.tribe.fire.oc.maker.core.utils.SystemUtils.storagePermission
+import com.dragon.tribe.fire.oc.maker.R
+import com.dragon.tribe.fire.oc.maker.core.utils.key.IntentKey.FROM_INTRO
+import com.dragon.tribe.fire.oc.maker.databinding.ActivityPermissionBinding
+import com.dragon.tribe.fire.oc.maker.ui.home.HomeActivity
+import androidx.core.graphics.toColorInt
+
+class PermissionActivity: BaseActivity<ActivityPermissionBinding>() {
+    override fun setViewBinding(): ActivityPermissionBinding {
+        return ActivityPermissionBinding.inflate(LayoutInflater.from(this))
+    }
+
+    override fun initView() {
+        initData()
+    }
+
+    override fun viewListener() {
+        binding.apply {
+            switchPermission.onSingleClick {
+                if (checkPermissions(storagePermission)) {
+                    Toast.makeText(this@PermissionActivity, R.string.granted_storage, Toast.LENGTH_SHORT).show()
+                } else {
+                    if (isStoragePermission(this@PermissionActivity) >= 2 && !checkPermissions(storagePermission)) {
+                        goToSettings()
+                    }else{
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            requestPermission(storagePermission, STORAGE_PERMISSION_CODE)
+                        }
+                    }
+                }
+
+            }
+
+            switchNotification.onSingleClick {
+                if (checkPermissions(notificationPermission)) {
+                    Toast.makeText(
+                        this@PermissionActivity, getString(R.string.granted_notification), Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    if (isNotificationPermission(this@PermissionActivity) >= 2) {
+                        goToSettings()
+                    }else{
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            requestPermission(notificationPermission, NOTIFICATION_PERMISSION_CODE)
+                        }
+                    }
+                }
+
+            }
+
+            txtContinue.onSingleClick(1500) {
+                startIntentAnim(HomeActivity::class.java,FROM_INTRO)
+                SystemUtils.setFirstPermission(this@PermissionActivity, false)
+                finishAffinity()
+            }
+
+            btnBack.hide()
+            btnSettings.hide()
+        }
+    }
+
+    override fun initText() {
+        binding.apply {
+            val allowText = getString(R.string.allow)
+            val appName = getString(R.string.app_name)
+            val toAccess = getString(R.string.to_access)
+
+            txtPer.text = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                    "$allowText $appName $toAccess (Android 13+)"
+                }
+                else -> {
+                    "$allowText $appName $toAccess"
+                }
+            }
+        }
+    }
+
+    private fun initData() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            binding.layoutNotifi.show()
+            binding.layoutStorage.gone()
+        } else {
+            binding.layoutStorage.show()
+            binding.layoutNotifi.gone()
+        }
+    }
+
+
+
+    class CustomTypefaceSpan(private val family: String, private val typeface: Typeface?) : TypefaceSpan(family) {
+
+        override fun updateDrawState(ds: TextPaint) {
+            applyCustomTypeFace(ds, typeface)
+        }
+
+        override fun updateMeasureState(paint: TextPaint) {
+            applyCustomTypeFace(paint, typeface)
+        }
+
+        private fun applyCustomTypeFace(paint: Paint, tf: Typeface?) {
+            if (tf != null) {
+                paint.typeface = tf
+            } else {
+                paint.typeface = Typeface.DEFAULT
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                binding.switchPermission.setImageResource(R.drawable.switch_on_permission)
+                Toast.makeText(this, R.string.granted_storage, Toast.LENGTH_SHORT).show()
+            } else {
+                binding.switchPermission.setImageResource(R.drawable.switch_off_permission)
+                setStoragePermission(this, (isStoragePermission(this) + 1))
+            }
+        } else if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                binding.switchNotification.setImageResource(R.drawable.switch_on_permission)
+                Toast.makeText(this, R.string.granted_notification, Toast.LENGTH_SHORT).show()
+            } else {
+                R.drawable.switch_off_permission
+                setNotificationPermission(this, (isNotificationPermission(this) + 1))
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onStart() {
+        super.onStart()
+        if (checkPermissions(storagePermission)) {
+            binding.switchPermission.setImageResource(R.drawable.switch_on_permission)
+            setStoragePermission(this, 0)
+        } else {
+            binding.switchPermission.setImageResource(R.drawable.switch_off_permission)
+        }
+        if (checkPermissions(notificationPermission)) {
+            binding.switchNotification.setImageResource(R.drawable.switch_on_permission)
+            setNotificationPermission(this, 0)
+        } else {
+            binding.switchNotification.setImageResource(R.drawable.switch_off_permission)
+        }
+    }
+
+}

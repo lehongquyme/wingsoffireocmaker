@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Wings of fire oc maker</string>
+    <string name="app_name">Dragon Tribe OC Maker</string>
     <string name="go_to_setting_title">अनुमति सेटिंग्स</string>
     <string name="go_to_setting_message">एप को इस अनुमति की आवश्यकता है</string>
     <string name="ok">ठीक है</string>
@@ -85,7 +85,7 @@
     <string name="loading">लोड हो रहा है</string>
     <string name="it_only_takes_a_few_seconds">यह केवल कुछ सेकंड लेता है।</string>
     <string name="sticker">मेरा\nनिर्माण</string>
-    <string name="create_maker">विंग ऑफ़\nफायर ओसी मेकर</string>
+    <string name="create_maker">ड्रैगन जनजाति OC निर्माता</string>
     <string name="hikari_category">तचिबाना\nहिकारी</string>
     <string name="yume_category">कानज़ाकी\nयूमे</string>
     <string name="aoi_category">शिरोसावा\nआओई</string>
@@ -94,6 +94,7 @@
     <string name="add_to_whatsapp">व्हाट्सएप में जोड़ें</string>
     <string name="downloading">डाउनलोड हो रहा है...</string>
     <string name="please_check_your_internet">कृपया अपना इंटरनेट जांचें!</string>
+    <string name="internet">इंटरनेट!</string>
     <string name="exit_your_customize">अपनी कस्टमाइज़ेशन छोड़ें</string>
     <string name="haven_t_saved_it_yet_do_you_want_to_exit">अभी तक सहेजा नहीं है, क्या आप बाहर निकलना चाहते हैं?</string>
     <string name="save_failed_please_try_again">सहेजना विफल! कृपया पुनः प्रयास करें।</string>
